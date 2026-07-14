@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>fr.francetv.foundation</groupId>
+    <artifactId>foundation-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <relativePath>../foundation-parent/pom.xml</relativePath>
+  </parent>
+
+  <artifactId>foundation-security-starter</artifactId>
+
+  <name>foundation-security-starter</name>
+  <description>Security starter - OAuth2 Resource Server / JWT validation</description>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>fr.francetv.foundation</groupId>
+        <artifactId>foundation-bom</artifactId>
+        <version>${project.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>fr.francetv.foundation</groupId>
+      <artifactId>foundation-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+</project>

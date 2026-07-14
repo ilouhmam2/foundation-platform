@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>fr.francetv.foundation</groupId>
+  <artifactId>foundation-platform</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>foundation-platform</name>
+  <description>Foundation platform for enterprise Spring Boot microservices</description>
+
+  <modules>
+    <module>foundation-parent</module>
+    <module>foundation-bom</module>
+    <module>foundation-common</module>
+    <module>foundation-core-starter</module>
+    <module>foundation-api-starter</module>
+    <module>foundation-security-starter</module>
+    <module>foundation-logging-starter</module>
+    <module>foundation-observability-starter</module>
+    <module>foundation-mapping-starter</module>
+    <module>foundation-data-starter</module>
+    <module>foundation-nats-starter</module>
+    <module>foundation-http-client-starter</module>
+    <module>foundation-soap-client-starter</module>
+    <module>foundation-test-starter</module>
+    <module>foundation-sample-service</module>
+  </modules>
+
+</project>

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>fr.francetv.foundation</groupId>
+  <artifactId>foundation-bom</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>foundation-bom</name>
+  <description>Bill of Materials - dependency version management for the foundation platform</description>
+
+  <properties>
+    <foundation.version>0.0.1-SNAPSHOT</foundation.version>
+    <mapstruct.version>1.6.3</mapstruct.version>
+    <nats.version>2.20.4</nats.version>
+    <cxf.version>4.0.5</cxf.version>
+    <testcontainers.version>1.20.4</testcontainers.version>
+    <wiremock.version>3.9.2</wiremock.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+
+      <!-- Spring Boot BOM -->
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>4.1.0</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <!-- MapStruct -->
+      <dependency>
+        <groupId>org.mapstruct</groupId>
+        <artifactId>mapstruct</artifactId>
+        <version>${mapstruct.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.mapstruct</groupId>
+        <artifactId>mapstruct-processor</artifactId>
+        <version>${mapstruct.version}</version>
+      </dependency>
+
+      <!-- NATS -->
+      <dependency>
+        <groupId>io.nats</groupId>
+        <artifactId>jnats</artifactId>
+        <version>${nats.version}</version>
+      </dependency>
+
+      <!-- Testcontainers BOM -->
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers-bom</artifactId>
+        <version>${testcontainers.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <!-- WireMock -->
+      <dependency>
+        <groupId>org.wiremock</groupId>
+        <artifactId>wiremock</artifactId>
+        <version>${wiremock.version}</version>
+      </dependency>
+
+      <!-- Apache CXF (SOAP) -->
+      <dependency>
+        <groupId>org.apache.cxf</groupId>
+        <artifactId>cxf-spring-boot-starter-jaxws</artifactId>
+        <version>${cxf.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.cxf</groupId>
+        <artifactId>cxf-rt-frontend-jaxws</artifactId>
+        <version>${cxf.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.cxf</groupId>
+        <artifactId>cxf-rt-transports-http</artifactId>
+        <version>${cxf.version}</version>
+      </dependency>
+
+      <!-- Foundation platform modules -->
+      <dependency>
+        <groupId>fr.francetv.foundation</groupId>
+        <artifactId>foundation-common</artifactId>
+        <version>${foundation.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>fr.francetv.foundation</groupId>
+        <artifactId>foundation-core-starter</artifactId>
+        <version>${foundation.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>fr.francetv.foundation</groupId>
+        <artifactId>foundation-api-starter</artifactId>
+        <version>${foundation.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>fr.francetv.foundation</groupId>
+        <artifactId>foundation-security-starter</artifactId>
+        <version>${foundation.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>fr.francetv.foundation</groupId>
+        <artifactId>foundation-logging-starter</artifactId>
+        <version>${foundation.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>fr.francetv.foundation</groupId>
+        <artifactId>foundation-observability-starter</artifactId>
+        <version>${foundation.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>fr.francetv.foundation</groupId>
+        <artifactId>foundation-mapping-starter</artifactId>
+        <version>${foundation.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>fr.francetv.foundation</groupId>
+        <artifactId>foundation-data-starter</artifactId>
+        <version>${foundation.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>fr.francetv.foundation</groupId>
+        <artifactId>foundation-nats-starter</artifactId>
+        <version>${foundation.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>fr.francetv.foundation</groupId>
+        <artifactId>foundation-http-client-starter</artifactId>
+        <version>${foundation.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>fr.francetv.foundation</groupId>
+        <artifactId>foundation-soap-client-starter</artifactId>
+        <version>${foundation.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>fr.francetv.foundation</groupId>
+        <artifactId>foundation-test-starter</artifactId>
+        <version>${foundation.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+    </dependencies>
+  </dependencyManagement>
+
+</project>
