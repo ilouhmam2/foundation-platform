@@ -121,3 +121,99 @@ void shouldRespectBeanOverride() {
 - [ ] README documents all properties and a usage example.
 - [ ] No business logic in the starter.
 - [ ] No optional runtime deps forced on all services.
+
+---
+
+## Extension-friendly starters
+
+When a starter's bean is designed to be extended by consuming services (e.g. a
+`@RestControllerAdvice` that teams add handlers to), make reusable methods `protected`:
+
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    // constant accessible by subclasses
+    protected static final String MDC_KEY = "correlationId";
+
+    // callable by subclasses to build a consistent response
+    protected ResponseEntity<ApiErrorResponse> buildResponse(
+            HttpStatus status, String message, HttpServletRequest request) { ... }
+
+    // callable by subclasses to reuse the same correlation ID resolution
+    protected String resolveCorrelationId(HttpServletRequest request) { ... }
+}
+```
+
+Document the extension pattern in the README:
+
+```java
+@RestControllerAdvice
+public class MyExceptionHandler extends GlobalExceptionHandler {
+
+    public MyExceptionHandler(ApiProperties properties) {
+        super(properties);
+    }
+
+    @ExceptionHandler(MyDomainException.class)
+    public ResponseEntity<ApiErrorResponse> handleDomain(
+            MyDomainException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage(), request);
+    }
+}
+```
+
+Because `GlobalExceptionHandler` is registered with `@ConditionalOnMissingBean`, the
+auto-configuration backs off when the consuming service declares its own bean.
+
+---
+
+## @WebMvcTest integration
+
+If your starter provides a `@ControllerAdvice` or other MVC infrastructure, register the
+auto-configuration in the web MVC test slice so consuming services get it automatically
+in `@WebMvcTest` contexts:
+
+```
+src/main/resources/META-INF/spring/
+  org.springframework.boot.test.autoconfigure.web.mvc.AutoConfigureWebMvc.imports
+```
+
+Content (same class as `AutoConfiguration.imports`):
+
+```
+fr.francetv.foundation.{capability}.autoconfigure.CapabilityAutoConfiguration
+```
+
+This makes `@WebMvcTest` in consuming services include the starter's MVC beans without
+any extra `@Import` annotation on the test class.
+
+---
+
+## Testing MVC starters with standalone MockMvc
+
+When `spring-boot-test-autoconfigure` is limited or `@WebMvcTest` is not available, use
+`MockMvcBuilders.standaloneSetup` — it is equivalent for testing a `@RestControllerAdvice`:
+
+```java
+@BeforeEach
+void setUp() {
+    GlobalExceptionHandler handler = new GlobalExceptionHandler(new MyProperties(false));
+    TestController controller = new TestController();
+
+    mockMvc = MockMvcBuilders.standaloneSetup(controller)
+            .setControllerAdvice(handler)
+            .build();
+}
+```
+
+**Note on date/time types in response records**: prefer `String` (ISO-8601 formatted via
+`DateTimeFormatter.ISO_INSTANT`) over `Instant` for response records in library starters.
+`Instant` requires `JavaTimeModule` to be registered in the consuming service's `ObjectMapper`.
+Using `String` avoids a hidden runtime requirement and keeps serialization predictable
+without additional configuration:
+
+```java
+// in buildResponse():
+DateTimeFormatter.ISO_INSTANT.format(Instant.now())  // → "2026-07-15T10:00:00Z"
+```

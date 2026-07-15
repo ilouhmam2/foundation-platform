@@ -33,6 +33,7 @@ Do NOT read all files at once. Read only those relevant to the current module sc
 - Spring Security OAuth2 Resource Server
 - Flyway (data modules only)
 - Spring Data JPA (data modules only)
+- Lombok
 - MapStruct
 - NATS
 - OpenAPI Generator
@@ -107,9 +108,58 @@ Every starter must:
 
 ---
 
+## foundation-common design rules
+
+`foundation-common` provides shared utilities with **zero Spring dependency**.
+
+### What belongs here
+
+- HTTP header name constants (`FoundationHeaders`)
+- Correlation ID generation and extraction (`CorrelationIdUtils`)
+- Base exception hierarchy (`FoundationException`, subtypes)
+
+### What does NOT belong here
+
+- Spring beans or auto-configuration
+- Framework-specific abstractions
+- Business logic
+
+### CorrelationIdUtils scope
+
+`CorrelationIdUtils` is shared by multiple starters:
+
+- `foundation-api-starter` — extracts or generates correlation ID from HTTP headers
+- `foundation-logging-starter` — propagates correlation ID in log context
+- `foundation-nats-starter` — propagates correlation ID in NATS message metadata
+
+Any service that uses two or more of these starters benefits from a single shared utility.
+Do not duplicate this logic inside individual starters.
+
+### Exception contract
+
+| Type | Semantic | HTTP mapping |
+|---|---|---|
+| `FoundationTechnicalException` | Infrastructure/server failure | 5xx (handled by `foundation-api-starter`) |
+| `FoundationBusinessException` | Business rule violation / invalid request | 4xx (handled by `foundation-api-starter`) |
+
+The HTTP mapping is NOT implemented in `foundation-common`.
+It is the responsibility of `foundation-api-starter`.
+
+### Class count rule
+
+`foundation-common` must stay under 5 classes.
+If a new class is proposed, its necessity must be justified by at least 2 starters using it.
+
+---
+
 ## Code style
 
 - Constructor injection only (no `@Autowired` field injection)
+- Use `@RequiredArgsConstructor` for Spring beans with constructor injection
+- Use `@UtilityClass` for utility/constants classes (no manual private constructor)
+- Use `@Slf4j` for logger fields
+- Do not use `@Data`, `@EqualsAndHashCode`, or `@ToString` on JPA entities
+- Do not use `@SneakyThrows` — handle exceptions explicitly
 - Typed configuration properties (no `Environment.getProperty()`)
 - Clear package names under `fr.francetv.foundation`
 - No unnecessary inheritance
@@ -128,89 +178,6 @@ Do not:
 - Log tokens, passwords, or sensitive data
 - Introduce deployment artifacts
 - Create service-specific generated clients in this repository
-
-## Technical baseline
-
-Use:
-
-- Java 21
-- Spring Boot 4.1.x
-- Maven
-- Spring Boot starters
-- Spring Boot auto-configuration
-- Spring Security OAuth2 Resource Server
-- Flyway
-- JPA where needed
-- MapStruct
-- NATS
-- OpenAPI Generator
-- Apache CXF
-- Micrometer
-- OpenTelemetry
-- Testcontainers
-
-## Architecture principles
-
-### Keep it lightweight
-
-Do not create unnecessary framework abstractions.
-
-Prefer standard Spring Boot conventions.
-
-### Use dependency-driven composition
-
-A service uses a capability by declaring the related starter dependency.
-
-Do not use properties as the primary activation mechanism.
-
-### Keep deployment outside
-
-Do not create:
-
-- Docker Compose
-- Helm charts
-- Kubernetes manifests
-- GitLab CI files
-
-### Keep clients outside the foundation
-
-Generated REST and SOAP clients belong to consuming microservices.
-
-The foundation provides runtime support and templates only.
-
-## Code generation rules
-
-When generating code:
-
-1. Generate only files related to the requested scope.
-2. Avoid modifying unrelated modules.
-3. Add tests.
-4. Add documentation.
-5. Explain design decisions.
-6. Review the result for over-engineering.
-7. Prefer simple code over clever code.
-
-## Starter rules
-
-Every starter must:
-
-- provide auto-configuration
-- use configuration properties only when useful
-- allow bean override
-- be conditional on classpath or missing beans
-- minimize dependencies
-- avoid business code
-- include tests
-- include usage documentation
-
-## Forbidden
-
-Do not:
-
-- put optional runtime dependencies in the parent POM
-- use Keycloak adapters
-- use `ddl-auto=update`
-- expose entities directly in APIs
 - log sensitive data
 - introduce deployment artifacts
 - create service-specific generated clients in the foundation repository

@@ -199,6 +199,79 @@ Prefer:
 
 Test names should describe behavior.
 
+---
+
+## 10. Lombok
+
+Lombok is the standard boilerplate-reduction library for this project.
+
+Version is managed by `spring-boot-dependencies` (imported via `foundation-bom`).
+
+Declare it as `optional` in every module that uses it:
+
+```xml
+<dependency>
+  <groupId>org.projectlombok</groupId>
+  <artifactId>lombok</artifactId>
+  <optional>true</optional>
+</dependency>
+```
+
+The annotation processor is configured centrally in `foundation-parent`.
+
+### Approved annotations
+
+| Annotation | Use case |
+|---|---|
+| `@UtilityClass` | Utility/constants classes — replaces `final` class + private constructor |
+| `@RequiredArgsConstructor` | Constructor injection in Spring beans |
+| `@Getter` | Immutable value objects without records |
+| `@Builder` | Complex object construction |
+| `@Slf4j` | SLF4J logger field |
+| `@Value` | Immutable data classes (non-Spring) |
+
+### Rules
+
+Prefer `@UtilityClass` over manually written `final` class with private constructor.
+
+Prefer `@RequiredArgsConstructor` for Spring components with constructor injection.
+
+Prefer `@Slf4j` over manually declared `LoggerFactory.getLogger(...)` fields.
+
+Do not use:
+
+- `@Data` on JPA entities (breaks `equals`/`hashCode` contracts with Hibernate)
+- `@EqualsAndHashCode` on JPA entities
+- `@ToString` on JPA entities with lazy associations
+- `@SneakyThrows` — exceptions must be handled explicitly
+
+### MapStruct + Lombok
+
+When a module uses both MapStruct and Lombok, add **both** to `annotationProcessorPaths` with Lombok **first**:
+
+```xml
+<plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-compiler-plugin</artifactId>
+  <configuration>
+    <annotationProcessorPaths>
+      <path>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>${lombok.version}</version>
+      </path>
+      <path>
+        <groupId>org.mapstruct</groupId>
+        <artifactId>mapstruct-processor</artifactId>
+        <version>${mapstruct.version}</version>
+      </path>
+    </annotationProcessorPaths>
+  </configuration>
+</plugin>
+```
+
+Lombok must appear before MapStruct so that MapStruct sees Lombok-generated methods.
+
 Example:
 
 ```java
