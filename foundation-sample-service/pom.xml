@@ -38,8 +38,32 @@
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
     <dependency>
+      <groupId>fr.francetv.foundation</groupId>
+      <artifactId>foundation-api-starter</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>fr.francetv.foundation</groupId>
+      <artifactId>foundation-logging-starter</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>fr.francetv.foundation</groupId>
+      <artifactId>foundation-observability-starter</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>fr.francetv.foundation</groupId>
+      <artifactId>foundation-security-starter</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>fr.francetv.foundation</groupId>
+      <artifactId>foundation-test-starter</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

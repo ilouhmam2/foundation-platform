@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!--
+        Foundation default Logback configuration.
+
+        Reads the following Spring Environment properties at startup:
+          spring.application.name     → included as "application" field in every log entry
+          foundation.logging.json-format → true (default) for JSON output, false for plain text
+
+        Requires janino on the classpath for the <if> condition (provided by foundation-logging-starter).
+
+        Override this file by placing your own logback-spring.xml in
+        src/main/resources of your service.
+    -->
+
+    <springProperty name="appName"    source="spring.application.name"       defaultValue="application"/>
+    <springProperty name="jsonFormat" source="foundation.logging.json-format" defaultValue="true"/>
+
+    <!-- JSON appender: structured output suitable for log aggregation (ELK, Loki, …) -->
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- Static fields added to every log entry -->
+            <customFields>{"application":"${appName}"}</customFields>
+            <!-- MDC fields (e.g. correlationId set by CorrelationIdFilter) are included automatically -->
+        </encoder>
+    </appender>
+
+    <!-- Plain-text appender: human-readable output for local development -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level [${appName}] [%X{correlationId}] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--
+        Switch between JSON and plain-text based on foundation.logging.json-format.
+        Requires org.codehaus.janino:janino (available via spring-boot-starter-logging).
+    -->
+    <if condition='"true".equals(property("jsonFormat"))'>
+        <then>
+            <root level="INFO">
+                <appender-ref ref="JSON_CONSOLE"/>
+            </root>
+        </then>
+        <else>
+            <root level="INFO">
+                <appender-ref ref="CONSOLE"/>
+            </root>
+        </else>
+    </if>
+
+</configuration>

@@ -21,6 +21,8 @@
     <openapi-generator.version>7.10.0</openapi-generator.version>
     <testcontainers.version>1.20.4</testcontainers.version>
     <wiremock.version>3.9.2</wiremock.version>
+    <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
+    <nimbus-jose-jwt.version>10.9</nimbus-jose-jwt.version>
   </properties>
 
   <dependencyManagement>
@@ -63,11 +65,25 @@
         <scope>import</scope>
       </dependency>
 
+      <!-- Logstash Logback Encoder -->
+      <dependency>
+        <groupId>net.logstash.logback</groupId>
+        <artifactId>logstash-logback-encoder</artifactId>
+        <version>${logstash-logback-encoder.version}</version>
+      </dependency>
+
       <!-- WireMock -->
       <dependency>
         <groupId>org.wiremock</groupId>
         <artifactId>wiremock</artifactId>
         <version>${wiremock.version}</version>
+      </dependency>
+
+      <!-- Nimbus JOSE + JWT (JWT generation in tests) -->
+      <dependency>
+        <groupId>com.nimbusds</groupId>
+        <artifactId>nimbus-jose-jwt</artifactId>
+        <version>${nimbus-jose-jwt.version}</version>
       </dependency>
 
       <!-- OpenAPI Generator -->

@@ -1,7 +1,9 @@
 package fr.francetv.foundation.api.autoconfigure;
 
 import fr.francetv.foundation.api.error.GlobalExceptionHandler;
+import fr.francetv.foundation.api.error.ValidationExceptionHandler;
 import fr.francetv.foundation.api.properties.ApiProperties;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -32,5 +34,12 @@ public class ApiAutoConfiguration {
     @ConditionalOnMissingBean
     public GlobalExceptionHandler globalExceptionHandler(ApiProperties properties) {
         return new GlobalExceptionHandler(properties);
+    }
+
+    @Bean
+    @ConditionalOnClass(ConstraintViolationException.class)
+    @ConditionalOnMissingBean(ValidationExceptionHandler.class)
+    public ValidationExceptionHandler validationExceptionHandler() {
+        return new ValidationExceptionHandler();
     }
 }

@@ -5,7 +5,6 @@ import fr.francetv.foundation.common.FoundationBusinessException;
 import fr.francetv.foundation.common.FoundationHeaders;
 import fr.francetv.foundation.common.FoundationTechnicalException;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -51,18 +50,6 @@ public class GlobalExceptionHandler {
                         ? fe.getField() + ": " + fe.getDefaultMessage()
                         : error.getDefaultMessage())
                 .collect(Collectors.joining(", "));
-        return buildResponse(HttpStatus.BAD_REQUEST, message, request);
-    }
-
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiErrorResponse> handleConstraintViolation(
-            ConstraintViolationException ex, HttpServletRequest request) {
-        var violations = ex.getConstraintViolations();
-        String message = (violations != null && !violations.isEmpty())
-                ? violations.stream()
-                        .map(cv -> cv.getPropertyPath() + ": " + cv.getMessage())
-                        .collect(Collectors.joining(", "))
-                : ex.getMessage();
         return buildResponse(HttpStatus.BAD_REQUEST, message, request);
     }
 

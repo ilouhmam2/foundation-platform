@@ -1,6 +1,7 @@
 package fr.francetv.foundation.api;
 
 import fr.francetv.foundation.api.error.GlobalExceptionHandler;
+import fr.francetv.foundation.api.error.ValidationExceptionHandler;
 import fr.francetv.foundation.api.properties.ApiProperties;
 import fr.francetv.foundation.common.FoundationBusinessException;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,10 +30,11 @@ class GlobalExceptionHandlerTest {
     void setUp() {
         ApiProperties properties = new ApiProperties(false);
         GlobalExceptionHandler handler = new GlobalExceptionHandler(properties);
+        ValidationExceptionHandler validationHandler = new ValidationExceptionHandler();
         TestApiController controller = new TestApiController();
 
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
-                .setControllerAdvice(handler)
+                .setControllerAdvice(validationHandler, handler)
                 .build();
     }
 

@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: test-service
+
+foundation:
+  observability:
+    application-name: ${spring.application.name}
+    environment: test
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: ${spring.application.name}
