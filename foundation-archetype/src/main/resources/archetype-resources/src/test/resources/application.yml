@@ -4,6 +4,16 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:8080/test-issuer
+#if($capabilities.contains("data"))
+  datasource:
+    url: jdbc:tc:postgresql:16:///testdb
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  flyway:
+    enabled: false
+#end
 
 management:
   endpoints:

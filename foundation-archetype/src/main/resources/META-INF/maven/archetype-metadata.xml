@@ -123,11 +123,19 @@
       </includes>
     </fileSet>
 
-    <!-- Test resources -->
-    <fileSet filtered="false" packaged="false" encoding="UTF-8">
+    <!-- Test resources: filtered to conditionally include datasource/nats overrides -->
+    <fileSet filtered="true" packaged="false" encoding="UTF-8">
       <directory>src/test/resources</directory>
       <includes>
         <include>application.yml</include>
+      </includes>
+    </fileSet>
+
+    <!-- Flyway migrations placeholder: always generated, removed when data not selected -->
+    <fileSet filtered="false" packaged="false" encoding="UTF-8">
+      <directory>src/main/resources</directory>
+      <includes>
+        <include>db/migration/.gitkeep</include>
       </includes>
     </fileSet>
 
