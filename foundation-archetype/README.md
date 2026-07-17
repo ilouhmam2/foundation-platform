@@ -105,3 +105,16 @@ mvn -pl foundation-archetype -am clean verify
 ```bash
 mvn -pl foundation-archetype -am clean install -DskipTests
 ```
+
+
+
+mvn archetype:generate `
+  "-DarchetypeCatalog=local" `
+  "-DarchetypeGroupId=fr.francetv.foundation" `
+  "-DarchetypeArtifactId=foundation-archetype" `
+  "-DarchetypeVersion=0.0.1-SNAPSHOT" `
+  "-DgroupId=fr.francetv.myteam" `
+  "-DartifactId=compile-test" `
+  "-DserviceName=CompileTest" `
+  "-Dcapabilities=data,nats" `
+  "-DinteractiveMode=false"

@@ -39,6 +39,7 @@ if (!capabilities.contains("nats")) {
 
 if (!capabilities.contains("data")) {
     deleteDir(new File(javaSourceDir, "infrastructure${File.separator}adapter${File.separator}out${File.separator}persistence"))
+    deleteDir(new File(projectDir, "src${File.separator}main${File.separator}resources${File.separator}db"))
 }
 
 if (!capabilities.contains("http-client")) {

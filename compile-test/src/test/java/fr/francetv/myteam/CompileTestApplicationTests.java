@@ -1,23 +1,18 @@
-package ${package};
+package fr.francetv.myteam;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-#if($capabilities.contains("nats"))
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
-#end
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-#if($capabilities.contains("nats"))
 @Testcontainers
-#end
-class ${serviceName}ApplicationTests {
+class CompileTestApplicationTests {
 
-#if($capabilities.contains("nats"))
     @Container
     static GenericContainer<?> natsContainer =
             new GenericContainer<>(DockerImageName.parse("nats:2-alpine"))
@@ -29,7 +24,6 @@ class ${serviceName}ApplicationTests {
                 () -> "nats://" + natsContainer.getHost() + ":" + natsContainer.getMappedPort(4222));
     }
 
-#end
     @Test
     void contextLoads() {
     }
