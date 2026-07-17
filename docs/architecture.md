@@ -106,7 +106,7 @@ foundation-platform
 │
 ├── foundation-test-starter
 │
-└── foundation-sample-service
+└── foundation-archetype
 ```
 
 ---
@@ -128,7 +128,11 @@ foundation-common
 foundation-*-starter
     Reusable runtime capabilities
 
-consuming services
+foundation-archetype
+    Maven archetype — generates hexagonal service projects
+    with mandatory and optional capabilities selected at generation time
+
+consuming services  (generated outside this repository)
     Business logic
     Domain model
     API implementation
@@ -459,9 +463,127 @@ The repository must not contain:
 
 Deployment concerns belong to platform engineering teams.
 
+> **Archetype exception**: `foundation-archetype` may generate a minimal `Dockerfile` and `.gitlab-ci.yml` inside the target consuming service project. These files belong to the generated service, not to the foundation-platform repository.
+
 ---
 
-## 17. Non-goals
+## 17. Archetype architecture
+
+`foundation-archetype` is a Maven Archetype that generates a ready-to-use microservice project.
+
+Generated services live outside this repository.
+
+### Generation parameters
+
+| Parameter | Required | Default | Description |
+|---|---|---|---|
+| `groupId` | yes | — | Maven groupId (e.g. `fr.francetv.myteam`) |
+| `artifactId` | yes | — | Maven artifactId and project directory name (e.g. `my-service`) |
+| `version` | yes | `0.0.1-SNAPSHOT` | Maven version |
+| `serviceName` | yes | — | PascalCase Java class name prefix (e.g. `MyService` → `MyServiceApplication.java`) |
+| `capabilities` | no | _(none)_ | Comma-separated optional capabilities: `data`, `nats`, `http-client`, `soap-client` |
+| `generateDockerfile` | no | `true` | Generate a minimal `Dockerfile` for the service |
+| `generateGitlabCi` | no | `true` | Generate a minimal `.gitlab-ci.yml` for the service |
+
+### Mandatory capabilities
+
+Every generated project automatically includes:
+
+| Starter | Purpose |
+|---|---|
+| `foundation-core-starter` | Correlation ID propagation |
+| `foundation-api-starter` | REST API conventions, error handling |
+| `foundation-security-starter` | OAuth2 Resource Server JWT |
+| `foundation-logging-starter` | Structured JSON logging |
+| `foundation-observability-starter` | Actuator, Micrometer, OpenTelemetry |
+| `foundation-mapping-starter` | MapStruct configuration |
+| `foundation-test-starter` | Testing helpers |
+
+### Optional capabilities
+
+Teams select optional capabilities using `-Dcapabilities` at generation time:
+
+| Key | Starter | Adds |
+|---|---|---|
+| `data` | `foundation-data-starter` | JPA, Flyway, PostgreSQL |
+| `nats` | `foundation-nats-starter` | NATS messaging |
+| `http-client` | `foundation-http-client-starter` | WebClient, OpenAPI REST clients |
+| `soap-client` | `foundation-soap-client-starter` | Apache CXF, WSDL SOAP clients |
+
+### Hexagonal architecture
+
+Every generated service follows a ports-and-adapters (hexagonal) package structure.
+
+```text
+fr.francetv.{team}.{service}/
+├── {ServiceName}Application.java
+│
+├── domain/
+│   ├── model/               pure domain objects, no framework dependency
+│   ├── port/
+│   │   ├── in/              input ports — use case interfaces
+│   │   └── out/             output ports — repository and client interfaces
+│   └── service/             domain services implementing input ports
+│
+├── application/
+│   └── usecase/             use case orchestrators, calls domain services
+│
+└── infrastructure/
+    ├── adapter/
+    │   ├── in/
+    │   │   ├── web/         REST controllers (present when api capability selected)
+    │   │   └── messaging/   NATS consumers (present when nats selected)
+    │   └── out/
+    │       ├── persistence/ JPA repositories (present when data selected)
+    │       ├── rest/        HTTP client adapters (present when http-client selected)
+    │       └── soap/        SOAP client adapters (present when soap-client selected)
+    └── config/              Spring @Configuration classes
+```
+
+This structure enforces:
+
+- domain isolation — domain package has zero framework dependency
+- dependency inversion — infrastructure implements domain output ports
+- testability — domain and application layers are testable without Spring context
+
+### Minimal application.yml
+
+The archetype generates an `application.yml` containing only the configuration blocks required by the selected capabilities.
+
+No unused configuration blocks are generated.
+
+### Generated Dockerfile
+
+When `generateDockerfile=true` (default), a minimal `Dockerfile` targeting the Eclipse Temurin JRE 21 Alpine image is generated in the service root.
+
+The Dockerfile:
+- Uses a minimal JRE image (not JDK)
+- Copies the Spring Boot fat JAR
+- Exposes port 8080
+- Sets the JVM entropy source flag for faster startup in containers
+
+The Dockerfile belongs to the generated consuming service, not to `foundation-platform`.
+
+### Generated GitLab CI
+
+When `generateGitlabCi=true` (default), a minimal `.gitlab-ci.yml` is generated with three stages:
+
+```text
+build   → mvn compile
+test    → mvn verify  (Testcontainers auto-starts required services)
+package → mvn package -DskipTests  (on main / develop branches only)
+```
+
+The pipeline:
+- Caches the local Maven repository per branch slug
+- Publishes JUnit XML test reports
+- Produces the JAR as a job artifact
+
+The `.gitlab-ci.yml` belongs to the generated consuming service, not to `foundation-platform`.
+
+---
+
+## 18. Non-goals
 
 The foundation is not intended to provide:
 
@@ -471,12 +593,13 @@ The foundation is not intended to provide:
 - business APIs
 - service-specific generated clients
 - deployment infrastructure
+- a sample or demonstration service inside the socle
 
-The foundation exists only to provide reusable technical capabilities.
+The foundation exists only to provide reusable technical capabilities and the tooling to scaffold conforming services.
 
 ---
 
-## 18. Related documents
+## 19. Related documents
 
 Architecture decisions are documented through ADRs.
 

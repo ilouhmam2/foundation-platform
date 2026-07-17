@@ -43,6 +43,7 @@ The platform should provide:
 - SOAP client support for WSDL-generated clients
 - Testing helpers
 - Documentation and AI-agent instructions
+- A Maven archetype to generate ready-to-use hexagonal service projects
 
 ---
 
@@ -57,6 +58,7 @@ The platform should provide:
 - Contain service-specific generated REST or SOAP clients
 - Include deployment artifacts (Docker Compose, Kubernetes, Helm, GitLab CI)
 - Couple to a specific Identity Provider
+- Embed a sample or demonstration service inside the socle — consuming services live outside this repository
 
 ---
 
@@ -101,4 +103,123 @@ The platform should provide:
 | `foundation-http-client-starter` | WebClient, OpenAPI client support |
 | `foundation-soap-client-starter` | Apache CXF, WSDL client support |
 | `foundation-test-starter` | Testing helpers and Testcontainers support |
-| `foundation-sample-service` | Example consuming service |
+| `foundation-archetype` | Maven archetype for generating hexagonal service projects |
+
+---
+
+## 7. Maven Archetype — Service Generator
+
+### Purpose
+
+`foundation-archetype` allows teams to scaffold a new microservice in seconds by selecting only the capabilities they need.
+
+The sample service (`foundation-sample-service`) is removed from the socle. Consuming services are generated outside this repository.
+
+### Usage
+
+```bash
+mvn archetype:generate \
+  -DarchetypeGroupId=fr.francetv.foundation \
+  -DarchetypeArtifactId=foundation-archetype \
+  -DarchetypeVersion=${foundation.version} \
+  -DgroupId=fr.francetv.myteam \
+  -DartifactId=my-service \
+  -Dversion=0.0.1-SNAPSHOT \
+  -DserviceName=MyService \
+  -Dcapabilities=data,nats \
+  -DgenerateDockerfile=true \
+  -DgenerateGitlabCi=true
+```
+
+### Generation parameters
+
+| Parameter | Required | Default | Description |
+|---|---|---|---|
+| `groupId` | yes | — | Maven groupId, e.g. `fr.francetv.myteam` |
+| `artifactId` | yes | — | Maven artifactId and directory name, e.g. `my-service` |
+| `version` | yes | `0.0.1-SNAPSHOT` | Maven version |
+| `serviceName` | yes | — | PascalCase Java class prefix, e.g. `MyService` (used for `MyServiceApplication.java`) |
+| `capabilities` | no | _(none)_ | Comma-separated optional capabilities: `data`, `nats`, `http-client`, `soap-client` |
+| `generateDockerfile` | no | `true` | Generate a minimal `Dockerfile` for the service |
+| `generateGitlabCi` | no | `true` | Generate a minimal `.gitlab-ci.yml` for the service |
+
+### Mandatory capabilities (always included)
+
+Every generated service automatically includes:
+
+| Capability | Starter |
+|---|---|
+| Core (correlation ID) | `foundation-core-starter` |
+| REST API conventions | `foundation-api-starter` |
+| Security (OAuth2/JWT) | `foundation-security-starter` |
+| Structured logging | `foundation-logging-starter` |
+| Observability (Actuator, Micrometer) | `foundation-observability-starter` |
+| MapStruct | `foundation-mapping-starter` |
+| Testing helpers | `foundation-test-starter` |
+
+### Optional capabilities (selected at generation)
+
+| Capability key | Starter added | Description |
+|---|---|---|
+| `data` | `foundation-data-starter` | JPA, Flyway, PostgreSQL |
+| `nats` | `foundation-nats-starter` | NATS messaging |
+| `http-client` | `foundation-http-client-starter` | WebClient / OpenAPI REST clients |
+| `soap-client` | `foundation-soap-client-starter` | Apache CXF / WSDL SOAP clients |
+
+### Generated hexagonal architecture
+
+The generated service uses a ports-and-adapters (hexagonal) package structure:
+
+```
+fr.francetv.{team}.{service}/
+├── {ServiceName}Application.java
+├── domain/
+│   ├── model/                  ← pure domain objects
+│   ├── port/
+│   │   ├── in/                 ← input ports (use case interfaces)
+│   │   └── out/                ← output ports (repository / client interfaces)
+│   └── service/                ← domain services
+├── application/
+│   └── usecase/                ← use case implementations
+└── infrastructure/
+    ├── adapter/
+    │   ├── in/
+    │   │   ├── web/            ← REST controllers (if api selected)
+    │   │   └── messaging/      ← NATS consumers (if nats selected)
+    │   └── out/
+    │       ├── persistence/    ← JPA repositories (if data selected)
+    │       ├── rest/           ← HTTP client adapters (if http-client selected)
+    │       └── soap/           ← SOAP client adapters (if soap-client selected)
+    └── config/                 ← Spring @Configuration classes
+```
+
+### Generated application.yml
+
+The archetype generates a minimal `application.yml` with only the properties required by the selected capabilities. No unused configuration blocks are included.
+
+### Generated Dockerfile
+
+When `generateDockerfile=true` (default), a minimal `Dockerfile` is generated in the service root:
+
+```dockerfile
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+COPY target/${artifactId}-${version}.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "-Djava.security.egd=file:/dev/./urandom", "app.jar"]
+```
+
+> The Dockerfile belongs to the generated consuming service, not to `foundation-platform`.
+
+### Generated GitLab CI
+
+When `generateGitlabCi=true` (default), a minimal `.gitlab-ci.yml` is generated covering three stages: `build`, `test`, `package`.
+
+The pipeline:
+- Uses `maven:3.9-eclipse-temurin-21-alpine` as the build image
+- Caches the local Maven repository per branch
+- Runs `mvn verify` in the `test` stage (Testcontainers auto-starts required services)
+- Publishes JUnit XML reports
+- Packages the JAR artifact on `main` and `develop` branches
+
+> The `.gitlab-ci.yml` belongs to the generated consuming service, not to `foundation-platform`.

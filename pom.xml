@@ -27,7 +27,7 @@
     <module>foundation-http-client-starter</module>
     <module>foundation-soap-client-starter</module>
     <module>foundation-test-starter</module>
-    <module>foundation-sample-service</module>
+    <module>foundation-archetype</module>
   </modules>
 
 </project>

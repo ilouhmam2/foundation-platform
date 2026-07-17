@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: ${artifactId}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://your-idp/.well-known/openid-configuration
+#if($capabilities.contains("data"))
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${artifactId}
+    username: ${artifactId}
+    password: changeme
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+#end
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+foundation:
+  logging:
+    json-format: true
+#if($capabilities.contains("nats"))
+  nats:
+    server-url: nats://localhost:4222
+#end
+#if($capabilities.contains("http-client"))
+  http-client:
+    clients:
+      example:
+        base-url: https://api.example.com
+        connect-timeout: 5s
+        read-timeout: 10s
+#end
+#if($capabilities.contains("soap-client"))
+  soap-client:
+    clients:
+      example:
+        wsdl-url: https://api.example.com/service?wsdl
+        connect-timeout: 5000
+        receive-timeout: 30000
+#end

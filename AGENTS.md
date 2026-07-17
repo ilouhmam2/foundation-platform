@@ -27,6 +27,7 @@ It provides:
 - HTTP client standards
 - SOAP client standards
 - Testing helpers
+- Maven Archetype for generating hexagonal service projects
 
 ---
 
@@ -87,6 +88,21 @@ It must not force every service to use:
 - WebClient
 - PostgreSQL
 
+### Rule 5 - No Sample Service in the Socle
+
+`foundation-sample-service` is **not** part of `foundation-platform`.
+
+Do not introduce it.
+
+Consuming services are generated using `foundation-archetype` and live in separate repositories.
+
+The archetype must always:
+
+- include the 7 mandatory capabilities (core, api, security, logging, observability, mapping, test)
+- allow optional capabilities to be selected via `-Dcapabilities` at generation time
+- generate a hexagonal package structure (domain / application / infrastructure)
+- generate a minimal `application.yml` containing only the blocks for the selected capabilities
+
 ### Rule 4 - No Deployment Artifacts
 
 Do not create:
@@ -97,6 +113,8 @@ Do not create:
 - Docker Compose files
 
 Dockerfile belongs to the consuming microservice, not to the foundation runtime.
+
+> **Archetype exception**: `foundation-archetype` may include a `Dockerfile` template and a `.gitlab-ci.yml` template in its `archetype-resources/`. These files are generated inside the consuming service project (outside this repository), not inside the foundation-platform repository itself.
 
 ### Rule 5 - No IDP-Specific Implementation
 

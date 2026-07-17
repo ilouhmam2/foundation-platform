@@ -110,7 +110,7 @@ foundation-nats-starter/pom.xml
 foundation-http-client-starter/pom.xml
 foundation-soap-client-starter/pom.xml
 foundation-test-starter/pom.xml
-foundation-sample-service/pom.xml
+foundation-archetype/pom.xml
 ```
 
 ### Validation
@@ -1240,83 +1240,296 @@ Copilot Chat → agent "test-engineer"
 
 ---
 
-## Phase 16 — foundation-sample-service
+## Phase 16 — foundation-archetype
 
 ### Objectif
-Service exemple assemblant un sous-ensemble réaliste de starters. Sert de validation end-to-end du socle.
+Créer un Maven Archetype permettant de générer un nouveau service microservice avec :
+- les capabilities obligatoires incluses automatiquement
+- les capabilities optionnelles sélectionnables à la génération
+- le nom du service choisi librement (`serviceName`)
+- une architecture hexagonale (ports et adaptateurs) pré-structurée
+- un `application.yml` minimal adapté aux capabilities choisies
+- un `Dockerfile` minimal optionnel (activé par défaut)
+- un `.gitlab-ci.yml` minimal optionnel (activé par défaut)
 
-### 🤖 Agent : `engineer`
+Le `foundation-sample-service` est supprimé du socle. Les services consommateurs vivent en dehors de ce repository.
+
+### 🤖 Agent : `engineer` puis `architect`
+
+### Capabilities obligatoires (toujours incluses)
+
+| Starter | Rôle |
+|---|---|
+| `foundation-core-starter` | Correlation ID |
+| `foundation-api-starter` | Conventions REST, gestion d'erreurs |
+| `foundation-security-starter` | OAuth2 Resource Server JWT |
+| `foundation-logging-starter` | Logs structurés JSON |
+| `foundation-observability-starter` | Actuator, Micrometer |
+| `foundation-mapping-starter` | MapStruct |
+| `foundation-test-starter` | Helpers de test |
+
+### Capabilities optionnelles (flag `-Dcapabilities`)
+
+| Clé | Starter ajouté |
+|---|---|
+| `data` | `foundation-data-starter` |
+| `nats` | `foundation-nats-starter` |
+| `http-client` | `foundation-http-client-starter` |
+| `soap-client` | `foundation-soap-client-starter` |
+
+### Paramètres de génération
+
+| Paramètre | Requis | Défaut | Description |
+|---|---|---|---|
+| `groupId` | oui | — | Maven groupId, ex. `fr.francetv.myteam` |
+| `artifactId` | oui | — | Maven artifactId et nom du répertoire, ex. `my-service` |
+| `version` | oui | `0.0.1-SNAPSHOT` | Version Maven |
+| `serviceName` | oui | — | Préfixe PascalCase des classes Java, ex. `MyService` → `MyServiceApplication.java` |
+| `capabilities` | non | _(aucune)_ | Capabilities optionnelles en virgules : `data`, `nats`, `http-client`, `soap-client` |
+| `generateDockerfile` | non | `true` | Générer un `Dockerfile` minimal |
+| `generateGitlabCi` | non | `true` | Générer un `.gitlab-ci.yml` minimal |
 
 ### 📄 Prompt
 
 ```
+Copilot Chat → agent "engineer" → coller le contenu de ai/prompts/16-create-archetype.prompt.md
+```
+
+Ou directement :
+
+```
 Copilot Chat → agent "engineer"
 
-MODULE: foundation-sample-service
-SCOPE:  Service Spring Boot minimal utilisant :
-        - foundation-core-starter
-        - foundation-api-starter
-        - foundation-logging-starter
-        - foundation-observability-starter
-        - foundation-security-starter
-        Un endpoint GET /api/v1/hello qui retourne un message.
-        Pas de base de données, pas de NATS.
-        Démontrer : correlation ID dans les logs,
-        endpoint protégé par JWT, réponse d'erreur standard.
-GUIDELINE: docs/guidelines/api-guidelines.md + security-guidelines.md
+MODULE: foundation-archetype
+SCOPE:  Maven Archetype générant un service Spring Boot hexagonal.
+
+        PARAMÈTRES DE GÉNÉRATION :
+          -DgroupId         Maven groupId, ex. fr.francetv.myteam
+          -DartifactId      Maven artifactId, ex. my-service
+          -Dversion         Maven version (défaut : 0.0.1-SNAPSHOT)
+          -DserviceName     Préfixe PascalCase des classes Java, ex. MyService → MyServiceApplication.java
+          -Dcapabilities    Capabilities optionnelles séparées par virgules (data, nats, http-client, soap-client)
+          -DgenerateDockerfile   Générer un Dockerfile minimal (défaut : true)
+          -DgenerateGitlabCi    Générer un .gitlab-ci.yml minimal (défaut : true)
+
+        CAPABILITIES OBLIGATOIRES (toujours incluses) :
+          core, api, security, logging, observability, mapping, test
+
+        CAPABILITIES OPTIONNELLES (via -Dcapabilities) :
+          data        → foundation-data-starter + adapter/out/persistence + blocs datasource/jpa/flyway
+          nats        → foundation-nats-starter + adapter/in/messaging + bloc foundation.nats
+          http-client → foundation-http-client-starter + adapter/out/rest + bloc foundation.http-client
+          soap-client → foundation-soap-client-starter + adapter/out/soap + bloc foundation.soap-client
+
+        ARCHITECTURE HEXAGONALE (toujours générée) :
+          domain/model, domain/port/in, domain/port/out, domain/service,
+          application/usecase,
+          infrastructure/adapter/in/web, infrastructure/adapter/in/messaging (si nats),
+          infrastructure/adapter/out/persistence (si data), infrastructure/adapter/out/rest (si http-client),
+          infrastructure/adapter/out/soap (si soap-client), infrastructure/config
+
+        FICHIERS GÉNÉRÉS :
+          application.yml minimal avec uniquement les blocs de config des capabilities choisies
+          Dockerfile (eclipse-temurin:21-jre-alpine, JRE uniquement, si generateDockerfile=true)
+          .gitlab-ci.yml (stages: build/test/package, cache Maven, JUnit reports, si generateGitlabCi=true)
+          README dans le service cible avec les instructions de démarrage
+
+GUIDELINE: docs/guidelines/module-guidelines.md
+```
+
+### Structure du module archetype
+
+```
+foundation-archetype/
+├── pom.xml
+└── src/
+    └── main/
+        └── resources/
+            └── META-INF/
+                └── maven/
+                    └── archetype-metadata.xml     ← déclaration des fichiers et propriétés
+            └── archetype-resources/
+                ├── pom.xml                        ← POM généré avec starters sélectionnés
+                └── src/
+                    └── main/
+                        ├── java/
+                        │   └── __packageInPathFormat__/
+                        │       ├── __ServiceName__Application.java
+                        │       ├── domain/
+                        │       │   ├── model/       ← .gitkeep
+                        │       │   ├── port/in/     ← .gitkeep
+                        │       │   ├── port/out/    ← .gitkeep
+                        │       │   └── service/     ← .gitkeep
+                        │       ├── application/
+                        │       │   └── usecase/     ← .gitkeep
+                        │       └── infrastructure/
+                        │           ├── adapter/in/web/     ← si api
+                        │           ├── adapter/in/messaging/ ← si nats
+                        │           ├── adapter/out/persistence/ ← si data
+                        │           ├── adapter/out/rest/   ← si http-client
+                        │           ├── adapter/out/soap/   ← si soap-client
+                        │           └── config/
+                        └── resources/
+                            └── application.yml    ← config minimale conditionnelle
+                ├── Dockerfile                     ← si generateDockerfile=true
+                └── .gitlab-ci.yml                 ← si generateGitlabCi=true
+```
+
+### Commande de génération
+
+```bash
+mvn archetype:generate \
+  -DarchetypeGroupId=fr.francetv.foundation \
+  -DarchetypeArtifactId=foundation-archetype \
+  -DarchetypeVersion=0.0.1-SNAPSHOT \
+  -DgroupId=fr.francetv.monequipe \
+  -DartifactId=mon-service \
+  -Dversion=0.0.1-SNAPSHOT \
+  -DserviceName=MonService \
+  -Dcapabilities=data,nats \
+  -DgenerateDockerfile=true \
+  -DgenerateGitlabCi=true
+```
+
+### application.yml généré (exemple avec `data` + `nats`)
+
+```yaml
+spring:
+  application:
+    name: ${artifactId}
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${artifactId}
+    username: ${artifactId}
+    password: changeme
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+foundation:
+  nats:
+    server-url: nats://localhost:4222
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://your-idp/.well-known/openid-configuration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
 ```
 
 ### Tests à écrire
 
 ```java
-@SpringBootTest(webEnvironment = RANDOM_PORT)
-class SampleServiceSmokeTest {
+class ArchetypeGenerationTest {
 
     @Test
-    void applicationContextLoadsSuccessfully() { }
+    void shouldGenerateProjectWithMandatoryCapabilitiesOnly() {
+        // Exécuter archetype:generate sans -Dcapabilities
+        // Vérifier la présence de tous les starters obligatoires dans le POM généré
+        // Vérifier la structure de packages hexagonaux
+    }
 
     @Test
-    void healthEndpointIsPublic() { ... }
+    void shouldIncludeDataStarterWhenCapabilityRequested() {
+        // Générer avec -Dcapabilities=data
+        // Vérifier foundation-data-starter dans le POM généré
+        // Vérifier adapter/out/persistence/ créé
+        // Vérifier bloc datasource dans application.yml
+    }
 
     @Test
-    void helloEndpointRequiresAuthentication() { ... }
+    void shouldIncludeNatsStarterWhenCapabilityRequested() {
+        // Générer avec -Dcapabilities=nats
+        // Vérifier adapter/in/messaging/ créé
+    }
 
     @Test
-    void helloEndpointReturnsCorrelationId() { ... }
+    void shouldCompileGeneratedProject() {
+        // Générer un projet avec toutes les capabilities
+        // Exécuter mvn compile sur le projet généré
+        // BUILD SUCCESS attendu
+    }
 
     @Test
-    void errorResponseFollowsStandardModel() { ... }
+    void shouldGenerateDockerfileByDefault() {
+        // Générer sans -DgenerateDockerfile
+        // Vérifier la présence de Dockerfile dans le projet généré
+        // Vérifier l'image eclipse-temurin:21-jre-alpine
+    }
+
+    @Test
+    void shouldGenerateGitlabCiByDefault() {
+        // Générer sans -DgenerateGitlabCi
+        // Vérifier .gitlab-ci.yml dans le projet généré
+        // Vérifier les 3 stages : build, test, package
+    }
+
+    @Test
+    void shouldSkipDockerfileAndGitlabCiWhenDisabled() {
+        // Générer avec -DgenerateDockerfile=false -DgenerateGitlabCi=false
+        // Vérifier l'absence de Dockerfile et .gitlab-ci.yml
+    }
 }
 ```
 
 ### Validation
 
 ```bash
-mvn -pl foundation-sample-service -am clean verify
-mvn -pl foundation-sample-service spring-boot:run
-# Vérifier manuellement :
-curl http://localhost:8080/actuator/health
-curl http://localhost:8080/api/v1/hello          # doit retourner 401
-curl -H "Authorization: Bearer <token>" http://localhost:8080/api/v1/hello
+# Build de l'archetype
+mvn -pl foundation-archetype -am clean verify
+
+# Test de génération locale
+mvn archetype:generate \
+  -DarchetypeGroupId=fr.francetv.foundation \
+  -DarchetypeArtifactId=foundation-archetype \
+  -DarchetypeVersion=0.0.1-SNAPSHOT \
+  -DgroupId=fr.francetv.test \
+  -DartifactId=generated-test-service \
+  -DserviceName=GeneratedTest \
+  -Dcapabilities=data,nats,http-client \
+  -DgenerateDockerfile=true \
+  -DgenerateGitlabCi=true \
+  -DinteractiveMode=false
+
+# Compilation du service généré
+cd generated-test-service && mvn compile
 ```
 
-### 🤖 Review finale : agent `architect`
+### 🔴 Erreurs fréquentes
+- Starters optionnels ajoutés quand la capability n'est pas demandée → vérifier les conditions `archetype-metadata.xml`
+- `application.yml` contient des blocs non utilisés → générer uniquement les blocs nécessaires
+- Package hexagonal incomplet si une capability est absente → garantir les packages domain et application dans tous les cas
+
+### 🤖 Review : agent `architect`
 
 ```
 Copilot Chat → agent "architect"
-→ "Revue finale de foundation-sample-service.
-   Vérifier qu'il n'embarque que des starters foundation,
-   aucune logique métier réelle, sert uniquement de démonstration.
-   Vérifier que tous les starters utilisés s'assemblent sans conflit."
+→ "Revue de foundation-archetype.
+   Vérifier que l'archetype respecte la séparation hexagonale,
+   que les capabilities obligatoires sont toujours présentes,
+   que les capabilities optionnelles n'ajoutent que ce qui est demandé,
+   et que le service généré compile sans erreur."
 ```
 
 ### ✅ DoD Phase 16
-- [ ] Application démarre sans erreur
-- [ ] Endpoint GET /api/v1/hello fonctionne avec JWT valide
-- [ ] X-Correlation-Id présent dans les logs et la réponse
-- [ ] /actuator/health accessible sans token
-- [ ] Smoke tests passent
-- [ ] `mvn -pl foundation-sample-service -am clean verify` → BUILD SUCCESS
+- [ ] `mvn -pl foundation-archetype -am clean verify` → BUILD SUCCESS
+- [ ] Génération sans `-Dcapabilities` produit un projet avec les 7 starters obligatoires
+- [ ] Chaque capability optionnelle ajoute exactement le bon starter ET les bons packages
+- [ ] `application.yml` généré ne contient que les blocs de config des capabilities sélectionnées
+- [ ] Le projet généré compile avec `mvn compile`
+- [ ] Architecture hexagonale présente dans tous les cas générés
+- [ ] `serviceName` produit le bon nom de classe Java (`{ServiceName}Application.java`)
+- [ ] `Dockerfile` généré par défaut, absent si `generateDockerfile=false`
+- [ ] `.gitlab-ci.yml` généré par défaut, absent si `generateGitlabCi=false`
+- [ ] Tests de génération passent (toutes combinaisons)
+- [ ] README dans le projet généré avec instructions démarrage
 - [ ] Review architect : Accepted
 
 ---
@@ -1366,7 +1579,8 @@ Copilot Chat → agent "architect"
 - [ ] `mvn clean verify` → BUILD SUCCESS sur TOUS les modules
 - [ ] Aucun test en échec
 - [ ] Aucune dépendance cyclique
-- [ ] `foundation-sample-service` démarre et répond correctement
+- [ ] `foundation-archetype` génère un service compilable avec toutes les combinaisons de capabilities
+- [x] `foundation-sample-service` retiré du socle (ne fait plus partie du `pom.xml` root)
 - [ ] Review architect globale : Accepted
 - [ ] `git tag v0.0.1-SNAPSHOT`
 
@@ -1392,7 +1606,7 @@ Copilot Chat → agent "architect"
 | 13 | foundation-soap-client-starter | engineer | /implement-starter | ⬜ |
 | 14 | foundation-data-starter | engineer | 04-create-data-starter | ⬜ |
 | 15 | foundation-test-starter | engineer+test-engineer | /implement-starter | ⬜ |
-| 16 | foundation-sample-service | engineer | manuel | ⬜ |
+| 16 | foundation-archetype | engineer+architect | 16-create-archetype | ⬜ |
 | 17 | Validation globale | architect | - | ⬜ |
 
 Remplacer ⬜ par ✅ au fur et à mesure.

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archetype-descriptor
+    xmlns="https://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.1.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.1.0
+                        https://maven.apache.org/xsd/archetype-descriptor-1.1.0.xsd"
+    name="foundation-archetype"
+    partial="false">
+
+  <requiredProperties>
+
+    <requiredProperty key="serviceName">
+      <validationRegex>[A-Z][a-zA-Z0-9]+</validationRegex>
+    </requiredProperty>
+
+    <!--
+      capabilities must be in requiredProperties to be visible to Velocity.
+      Maven archetype rejects empty-string defaultValue, so "none" is used as
+      the no-capabilities sentinel: "none".contains("data") == false.
+      Users pass -Dcapabilities=data,nats or omit it entirely.
+    -->
+    <requiredProperty key="capabilities">
+      <defaultValue>none</defaultValue>
+    </requiredProperty>
+
+    <requiredProperty key="generateDockerfile">
+      <defaultValue>true</defaultValue>
+    </requiredProperty>
+
+    <requiredProperty key="generateGitlabCi">
+      <defaultValue>true</defaultValue>
+    </requiredProperty>
+
+    <requiredProperty key="foundationVersion">
+      <defaultValue>0.0.1-SNAPSHOT</defaultValue>
+    </requiredProperty>
+
+  </requiredProperties>
+
+  <fileSets>
+
+    <!-- Application entry point -->
+    <fileSet filtered="true" packaged="true" encoding="UTF-8">
+      <directory>src/main/java</directory>
+      <includes>
+        <include>__serviceName__Application.java</include>
+      </includes>
+    </fileSet>
+
+    <!-- Domain layer: always generated -->
+    <fileSet filtered="false" packaged="true" encoding="UTF-8">
+      <directory>src/main/java</directory>
+      <includes>
+        <include>domain/model/.gitkeep</include>
+        <include>domain/port/in/.gitkeep</include>
+        <include>domain/port/out/.gitkeep</include>
+        <include>domain/service/.gitkeep</include>
+      </includes>
+    </fileSet>
+
+    <!-- Application layer: always generated -->
+    <fileSet filtered="false" packaged="true" encoding="UTF-8">
+      <directory>src/main/java</directory>
+      <includes>
+        <include>application/usecase/.gitkeep</include>
+      </includes>
+    </fileSet>
+
+    <!-- Infrastructure: always generated (api is mandatory) -->
+    <fileSet filtered="false" packaged="true" encoding="UTF-8">
+      <directory>src/main/java</directory>
+      <includes>
+        <include>infrastructure/adapter/in/web/.gitkeep</include>
+        <include>infrastructure/config/.gitkeep</include>
+      </includes>
+    </fileSet>
+
+    <!-- Infrastructure messaging: nats (conditionally kept by post-generate script) -->
+    <fileSet filtered="false" packaged="true" encoding="UTF-8">
+      <directory>src/main/java</directory>
+      <includes>
+        <include>infrastructure/adapter/in/messaging/.gitkeep</include>
+      </includes>
+    </fileSet>
+
+    <!-- Infrastructure persistence: data (conditionally kept by post-generate script) -->
+    <fileSet filtered="false" packaged="true" encoding="UTF-8">
+      <directory>src/main/java</directory>
+      <includes>
+        <include>infrastructure/adapter/out/persistence/.gitkeep</include>
+      </includes>
+    </fileSet>
+
+    <!-- Infrastructure rest: http-client (conditionally kept by post-generate script) -->
+    <fileSet filtered="false" packaged="true" encoding="UTF-8">
+      <directory>src/main/java</directory>
+      <includes>
+        <include>infrastructure/adapter/out/rest/.gitkeep</include>
+      </includes>
+    </fileSet>
+
+    <!-- Infrastructure soap: soap-client (conditionally kept by post-generate script) -->
+    <fileSet filtered="false" packaged="true" encoding="UTF-8">
+      <directory>src/main/java</directory>
+      <includes>
+        <include>infrastructure/adapter/out/soap/.gitkeep</include>
+      </includes>
+    </fileSet>
+
+    <!-- Main resources -->
+    <fileSet filtered="true" packaged="false" encoding="UTF-8">
+      <directory>src/main/resources</directory>
+      <includes>
+        <include>application.yml</include>
+      </includes>
+    </fileSet>
+
+    <!-- Test sources -->
+    <fileSet filtered="true" packaged="true" encoding="UTF-8">
+      <directory>src/test/java</directory>
+      <includes>
+        <include>__serviceName__ApplicationTests.java</include>
+      </includes>
+    </fileSet>
+
+    <!-- Test resources -->
+    <fileSet filtered="false" packaged="false" encoding="UTF-8">
+      <directory>src/test/resources</directory>
+      <includes>
+        <include>application.yml</include>
+      </includes>
+    </fileSet>
+
+    <!-- Dockerfile: always generated, removed by post-generate if generateDockerfile=false -->
+    <fileSet filtered="true" packaged="false" encoding="UTF-8">
+      <directory></directory>
+      <includes>
+        <include>Dockerfile</include>
+      </includes>
+    </fileSet>
+
+    <!-- GitLab CI: always generated, removed by post-generate if generateGitlabCi=false -->
+    <fileSet filtered="true" packaged="false" encoding="UTF-8">
+      <directory></directory>
+      <includes>
+        <include>.gitlab-ci.yml</include>
+      </includes>
+    </fileSet>
+
+    <!-- README -->
+    <fileSet filtered="true" packaged="false" encoding="UTF-8">
+      <directory></directory>
+      <includes>
+        <include>README.md</include>
+      </includes>
+    </fileSet>
+
+  </fileSets>
+
+</archetype-descriptor>

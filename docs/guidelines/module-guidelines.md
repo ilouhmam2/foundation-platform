@@ -27,7 +27,7 @@ foundation-bom
 foundation-common
 foundation-*-starter
 foundation-test-starter
-foundation-sample-service
+foundation-archetype
 ```
 
 ---
@@ -106,16 +106,29 @@ Must not add runtime dependencies to the production classpath.
 
 ---
 
-## 8. foundation-sample-service
+## 8. foundation-archetype
 
-Demonstrates assembly of a microservice using foundation starters.
+Provides a Maven Archetype for generating new hexagonal microservice projects.
+
+Consuming teams generate services outside this repository using:
+
+```bash
+mvn archetype:generate \
+  -DarchetypeGroupId=fr.francetv.foundation \
+  -DarchetypeArtifactId=foundation-archetype \
+  -DarchetypeVersion=${foundation.version} \
+  -Dcapabilities=data,nats
+```
 
 Must:
-- Use a realistic subset of foundation starters
-- Compile and run with `mvn spring-boot:run`
-- Serve as a reference example
+- Always include the 7 mandatory starters (core, api, security, logging, observability, mapping, test)
+- Allow optional capabilities to be selected via `-Dcapabilities` at generation time
+- Generate a hexagonal (ports-and-adapters) package structure
+- Generate a minimal `application.yml` with only the blocks for the selected capabilities
+- Generate a POM that imports `foundation-bom`
 
 Must not:
-- Contain real business logic
-- Contain committed generated clients
-- Serve as a template to copy-paste into production
+- Contain business logic or business entities
+- Generate deployment artifacts (Dockerfile, Helm, CI)
+- Force optional starters when the capability was not selected
+- Be used as a sample or demo service inside the socle

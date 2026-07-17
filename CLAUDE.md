@@ -28,6 +28,7 @@ It provides:
 - mapping conventions
 - integration conventions
 - testing helpers
+- Maven Archetype for generating hexagonal service projects
 
 ## Claude-specific workflow
 
@@ -51,5 +52,6 @@ Do not create:
 - GitLab CI pipelines
 - Keycloak configuration
 - service-specific generated clients inside foundation-platform
+- a sample service inside foundation-platform (use foundation-archetype instead)
 
 Keep feature composition dependency-driven.

@@ -52,7 +52,8 @@ foundation-parent     = build standards (plugins, compiler, quality)
 foundation-bom        = dependency versions
 foundation-common     = shared utilities (no auto-config)
 foundation-*-starter  = reusable runtime capabilities
-consuming services    = business logic, domain, generated clients
+foundation-archetype  = Maven archetype for generating hexagonal service projects
+consuming services    = generated outside this repo; business logic, domain, generated clients
 deployment platform   = Docker, Helm, Kubernetes, GitLab CI
 ```
 
@@ -79,6 +80,27 @@ Do not use Keycloak adapters. Use Spring Security OAuth2 Resource Server only.
 ### Generated clients stay outside
 
 Generated REST and SOAP clients belong to consuming microservices, not to `foundation-platform`.
+
+### No sample service in the socle
+
+`foundation-sample-service` is not part of the foundation platform.
+Do not re-introduce it.
+Consuming services are generated using `foundation-archetype` and live outside this repository.
+
+---
+
+## Archetype rules
+
+`foundation-archetype` generates a ready-to-use hexagonal service project.
+
+Rules:
+
+- Every generated project must include the 7 mandatory capabilities (core, api, security, logging, observability, mapping, test).
+- Optional capabilities are selected via `-Dcapabilities` (comma-separated: `data`, `nats`, `http-client`, `soap-client`).
+- The generated package structure must follow ports-and-adapters (hexagonal): `domain/model`, `domain/port/in`, `domain/port/out`, `domain/service`, `application/usecase`, `infrastructure/adapter/in`, `infrastructure/adapter/out`, `infrastructure/config`.
+- The generated `application.yml` must contain only the configuration blocks for the selected capabilities.
+- The `pom.xml` must import `foundation-bom` and declare only the starters required by the selected capabilities.
+- Do not generate deployment artifacts inside the archetype template.
 
 ---
 
