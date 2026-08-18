@@ -54,28 +54,32 @@
       <artifactId>mockito-core</artifactId>
     </dependency>
 
-    <!-- JWT test token generation -->
+    <!-- JWT test token generation (optional - only for services using security) -->
     <dependency>
       <groupId>com.nimbusds</groupId>
       <artifactId>nimbus-jose-jwt</artifactId>
+      <optional>true</optional>
     </dependency>
 
-    <!-- WireMock for HTTP stub servers in tests -->
+    <!-- WireMock for HTTP stub servers in tests (optional - only for services using HTTP clients) -->
     <dependency>
       <groupId>org.wiremock</groupId>
       <artifactId>wiremock</artifactId>
+      <optional>true</optional>
     </dependency>
 
-    <!-- Testcontainers for PostgreSQL integration tests -->
+    <!-- Testcontainers for PostgreSQL integration tests (optional - only for services using data) -->
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>postgresql</artifactId>
+      <optional>true</optional>
     </dependency>
 
-    <!-- Testcontainers JUnit 5 integration (@Testcontainers, @Container) -->
+    <!-- Testcontainers JUnit 5 integration (@Testcontainers, @Container) (optional - only when using containers) -->
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>junit-jupiter</artifactId>
+      <optional>true</optional>
     </dependency>
   </dependencies>
 

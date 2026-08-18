@@ -33,6 +33,12 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-autoconfigure</artifactId>
     </dependency>
+    <!--
+      logstash-logback-encoder and janino are intentionally non-optional.
+      This starter's sole purpose is to provide structured JSON logging;
+      the encoder and the Logback <if> conditional processor (janino) are
+      required for that capability and must be present on every consumer's classpath.
+    -->
     <dependency>
       <groupId>net.logstash.logback</groupId>
       <artifactId>logstash-logback-encoder</artifactId>

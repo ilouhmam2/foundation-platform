@@ -9,6 +9,8 @@ Read before implementing:
 - `docs/guidelines/module-guidelines.md`
 - `PRD.md` section 7 (Maven Archetype)
 
+Maven archetype generation must resolve the artifact from the local `~/.m2/repository` cache first, then from the remote repositories configured in `~/.m2/settings.xml` if it is not available locally.
+
 ---
 
 ## Objective
@@ -16,8 +18,8 @@ Read before implementing:
 Implement `foundation-archetype`, a Maven Archetype that generates a new microservice project adopting:
 
 - A ports-and-adapters (hexagonal) package structure
-- 7 mandatory capabilities always included
-- Up to 4 optional capabilities selected via `-Dcapabilities` at generation time
+- 6 mandatory capabilities always included
+- Up to 5 optional capabilities selected via `-Dcapabilities` at generation time
 - A minimal `application.yml` with only the configuration blocks for the chosen capabilities
 - An optional minimal `Dockerfile`
 - An optional minimal `.gitlab-ci.yml`
@@ -32,7 +34,7 @@ Implement `foundation-archetype`, a Maven Archetype that generates a new microse
 | `artifactId` | yes | — | Maven artifactId and directory name, e.g. `my-service` |
 | `version` | yes | `0.0.1-SNAPSHOT` | Maven version |
 | `serviceName` | yes | — | PascalCase Java class prefix, e.g. `MyService`. Produces `MyServiceApplication.java`. Must be entered by the user. Cannot be derived automatically from `artifactId` in Maven archetypes. |
-| `capabilities` | no | _(none)_ | Comma-separated optional capabilities: `data`, `nats`, `http-client`, `soap-client` |
+| `capabilities` | no | _(none)_ | Comma-separated optional capabilities: `security`, `data`, `nats`, `http-client`, `soap-client` |
 | `generateDockerfile` | no | `true` | Generate a minimal `Dockerfile` |
 | `generateGitlabCi` | no | `true` | Generate a minimal `.gitlab-ci.yml` |
 
@@ -44,7 +46,6 @@ Implement `foundation-archetype`, a Maven Archetype that generates a new microse
 |---|---|
 | `foundation-core-starter` | Correlation ID filter |
 | `foundation-api-starter` | REST API conventions, error handling |
-| `foundation-security-starter` | OAuth2 Resource Server JWT |
 | `foundation-logging-starter` | Structured JSON logging |
 | `foundation-observability-starter` | Actuator, Micrometer, OpenTelemetry |
 | `foundation-mapping-starter` | MapStruct |
@@ -54,10 +55,13 @@ Implement `foundation-archetype`, a Maven Archetype that generates a new microse
 
 ## Optional capabilities
 
-Selected via `-Dcapabilities=data,nats,http-client,soap-client` (comma-separated, any combination).
+Selected via `-Dcapabilities=security,data,nats,http-client,soap-client` (comma-separated, any combination).
+
+`security` must behave like the other optional capabilities: it is omitted by default and only added when explicitly requested.
 
 | Key | Starter added | Packages added | YAML blocks added |
 |---|---|---|---|
+| `security` | `foundation-security-starter` | none | `spring.security.oauth2.resourceserver.jwt` |
 | `data` | `foundation-data-starter` | `infrastructure/adapter/out/persistence` | `spring.datasource`, `spring.jpa`, `spring.flyway` |
 | `nats` | `foundation-nats-starter` | `infrastructure/adapter/in/messaging` | `foundation.nats` |
 | `http-client` | `foundation-http-client-starter` | `infrastructure/adapter/out/rest` | `foundation.http-client` |
@@ -100,7 +104,7 @@ The generated `pom.xml` must:
 
 1. Declare `<parent>` pointing to `foundation-parent`
 2. Import `foundation-bom` in `<dependencyManagement>`
-3. Declare all 7 mandatory starter dependencies
+3. Declare all 6 mandatory starter dependencies
 4. Declare only the optional starters selected via capabilities
 5. Include `spring-boot-maven-plugin` in `<build>`
 
@@ -114,11 +118,6 @@ Mandatory blocks (always present):
 spring:
   application:
     name: ${artifactId}
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://your-idp/.well-known/openid-configuration
 
 management:
   endpoints:
@@ -133,6 +132,17 @@ management:
 foundation:
   logging:
     json-format: true
+```
+
+Additional block for `security` capability:
+
+```yaml
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://your-idp/.well-known/openid-configuration
 ```
 
 Additional blocks per capability:
@@ -311,7 +321,8 @@ class ArchetypeGenerationIT {
     @Test
     void shouldGenerateWithMandatoryCapabilitiesOnly() {
         // Generate with no -Dcapabilities
-        // Assert pom.xml contains all 7 mandatory starters
+      // Assert pom.xml contains all 6 mandatory starters
+      // Assert foundation-security-starter is absent
         // Assert hexagonal package structure exists
         // Assert application.yml contains only mandatory blocks
         // Assert Dockerfile generated (default generateDockerfile=true)
@@ -329,8 +340,8 @@ class ArchetypeGenerationIT {
 
     @Test
     void shouldGenerateWithAllCapabilities() {
-        // Generate with -Dcapabilities=data,nats,http-client,soap-client
-        // Assert all 4 optional starters in pom.xml
+      // Generate with -Dcapabilities=security,data,nats,http-client,soap-client
+      // Assert all 5 optional starters in pom.xml
         // Assert all optional packages exist
         // Assert mvn compile succeeds
     }
@@ -388,6 +399,7 @@ class ArchetypeGenerationIT {
 mvn -pl foundation-archetype -am clean verify
 
 # Generate a test project with all capabilities and deployment files
+# Maven should resolve the archetype locally first, then from the configured remote repositories if needed
 mvn archetype:generate \
   -DarchetypeGroupId=fr.francetv.foundation \
   -DarchetypeArtifactId=foundation-archetype \
@@ -417,7 +429,8 @@ Get-Content .gitlab-ci.yml
 ## Definition of Done
 
 - [ ] `mvn -pl foundation-archetype -am clean verify` → BUILD SUCCESS
-- [ ] Generation without `-Dcapabilities` includes all 7 mandatory starters
+- [ ] Generation without `-Dcapabilities` includes all 6 mandatory starters
+- [ ] `security` capability adds foundation-security-starter and its JWT block only when requested
 - [ ] Each optional capability adds exactly the right starter + packages + YAML blocks
 - [ ] Unselected optional capabilities are entirely absent from pom.xml and application.yml
 - [ ] Hexagonal package structure is always present (domain, application, infrastructure)

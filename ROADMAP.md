@@ -21,11 +21,11 @@ Chaque phase suit **toujours** ce cycle :
 2. TESTER       →  mvn test  +  vérifier couverture
 3. REVOIR       →  agent reviewer  (ou architect pour structure)
 4. CORRIGER     →  agent engineer  pour les Required changes
-5. VALIDER      →  mvn clean verify  →  vert = phase terminée
+5. VALIDER      →  mvn clean install  →  vert = phase terminée
 6. COMMITTER    →  git commit -m "feat(module): description"
 ```
 
-Ne jamais passer à la phase suivante si `mvn clean verify` échoue.
+Ne jamais passer à la phase suivante si `mvn clean install` échoue.
 
 ---
 
@@ -192,7 +192,7 @@ SCOPE: Conventions de build Java 21, gestion des plugins Maven,
 ### Validation
 
 ```bash
-mvn -pl foundation-parent clean verify
+mvn -pl foundation-parent clean install
 # attendu : BUILD SUCCESS
 ```
 
@@ -205,7 +205,7 @@ mvn -pl foundation-parent clean verify
 ```
 
 ### ✅ DoD Phase 2
-- [ ] `mvn -pl foundation-parent clean verify` → BUILD SUCCESS
+- [ ] `mvn -pl foundation-parent clean install` → BUILD SUCCESS
 - [ ] Java 21 configuré en source + target + release
 - [ ] Aucune dépendance runtime dans le parent
 - [ ] Plugin management complet (compiler, surefire, failsafe)
@@ -260,7 +260,7 @@ GUIDELINE: docs/guidelines/module-guidelines.md section 4
 ### Validation
 
 ```bash
-mvn -pl foundation-bom clean verify
+mvn -pl foundation-bom clean install
 mvn -pl foundation-bom dependency:display-ancestors
 ```
 
@@ -269,7 +269,7 @@ mvn -pl foundation-bom dependency:display-ancestors
 - Version Spring Boot non LTS ou snapshot → utiliser uniquement releases stables
 
 ### ✅ DoD Phase 3
-- [ ] `mvn -pl foundation-bom clean verify` → BUILD SUCCESS
+- [ ] `mvn -pl foundation-bom clean install` → BUILD SUCCESS
 - [ ] Toutes les versions des modules foundation gérées dans le BOM
 - [ ] Spring Boot 4.1.x importé via BOM
 - [ ] Aucun `<build>` ou `<plugins>` dans le BOM
@@ -320,7 +320,7 @@ class FoundationHeadersTest {
 ### Validation
 
 ```bash
-mvn -pl foundation-common -am clean verify
+mvn -pl foundation-common -am clean install
 ```
 
 ### 🔴 Erreurs fréquentes
@@ -331,7 +331,7 @@ mvn -pl foundation-common -am clean verify
 - [ ] Tests unitaires passent
 - [ ] Aucune dépendance Spring dans le POM
 - [ ] Moins de 5 classes (si plus, challenger la nécessité)
-- [ ] `mvn -pl foundation-common -am clean verify` → BUILD SUCCESS
+- [ ] `mvn -pl foundation-common -am clean install` → BUILD SUCCESS
 
 ---
 
@@ -424,7 +424,7 @@ class CoreAutoConfigurationTest {
 ### Validation
 
 ```bash
-mvn -pl foundation-core-starter -am clean verify
+mvn -pl foundation-core-starter -am clean install
 ```
 
 ### 🤖 Review : agent `reviewer`
@@ -441,7 +441,7 @@ Copilot Chat → agent "reviewer"
 - [ ] Correlation ID dans MDC pour les logs
 - [ ] 3 tests minimum (default, override, génération)
 - [ ] README avec exemple de configuration
-- [ ] `mvn -pl foundation-core-starter -am clean verify` → BUILD SUCCESS
+- [ ] `mvn -pl foundation-core-starter -am clean install` → BUILD SUCCESS
 - [ ] Review reviewer : Accepted
 
 ---
@@ -503,7 +503,7 @@ class GlobalExceptionHandlerTest {
 ### Validation
 
 ```bash
-mvn -pl foundation-api-starter -am clean verify
+mvn -pl foundation-api-starter -am clean install
 ```
 
 ### ✅ DoD Phase 6
@@ -512,7 +512,7 @@ mvn -pl foundation-api-starter -am clean verify
 - [ ] HTTP 400/404/500 couverts
 - [ ] Tests de slice `@WebMvcTest` passent
 - [ ] README avec exemple de réponse d'erreur JSON
-- [ ] `mvn -pl foundation-api-starter -am clean verify` → BUILD SUCCESS
+- [ ] `mvn -pl foundation-api-starter -am clean install` → BUILD SUCCESS
 - [ ] Review reviewer : Accepted
 
 ---
@@ -577,7 +577,7 @@ class LoggingAutoConfigurationTest {
 ### Validation
 
 ```bash
-mvn -pl foundation-logging-starter -am clean verify
+mvn -pl foundation-logging-starter -am clean install
 ```
 
 ### ✅ DoD Phase 7
@@ -586,7 +586,7 @@ mvn -pl foundation-logging-starter -am clean verify
 - [ ] Format désactivable via propriété
 - [ ] Aucun token ni credential dans les logs
 - [ ] Tests passent
-- [ ] `mvn -pl foundation-logging-starter -am clean verify` → BUILD SUCCESS
+- [ ] `mvn -pl foundation-logging-starter -am clean install` → BUILD SUCCESS
 - [ ] Review reviewer : Accepted
 
 ---
@@ -658,7 +658,7 @@ class ObservabilityEndpointsTest {
 ### Validation
 
 ```bash
-mvn -pl foundation-observability-starter -am clean verify
+mvn -pl foundation-observability-starter -am clean install
 ```
 
 ### ✅ DoD Phase 8
@@ -667,7 +667,7 @@ mvn -pl foundation-observability-starter -am clean verify
 - [ ] Tags communs Micrometer configurés
 - [ ] Tests d'endpoints passent
 - [ ] README avec la configuration YAML minimale
-- [ ] `mvn -pl foundation-observability-starter -am clean verify` → BUILD SUCCESS
+- [ ] `mvn -pl foundation-observability-starter -am clean install` → BUILD SUCCESS
 - [ ] Review reviewer : Accepted
 
 ---
@@ -744,7 +744,7 @@ class SecurityAutoConfigurationTest {
 ### Validation
 
 ```bash
-mvn -pl foundation-security-starter -am clean verify
+mvn -pl foundation-security-starter -am clean install
 ```
 
 ### 🤖 Review spécifique : agent `reviewer`
@@ -763,7 +763,7 @@ Copilot Chat → agent "reviewer"
 - [ ] `/actuator/health/**` public par défaut
 - [ ] Aucun token logué
 - [ ] 5 scénarios de tests (public, protégé, sans token, token invalide, token valide)
-- [ ] `mvn -pl foundation-security-starter -am clean verify` → BUILD SUCCESS
+- [ ] `mvn -pl foundation-security-starter -am clean install` → BUILD SUCCESS
 - [ ] Review reviewer : Accepted (vérification sécurité incluse)
 
 ---
@@ -825,7 +825,7 @@ class MappingAutoConfigurationTest {
 ### Validation
 
 ```bash
-mvn -pl foundation-mapping-starter -am clean verify
+mvn -pl foundation-mapping-starter -am clean install
 ```
 
 ### ✅ DoD Phase 10
@@ -834,7 +834,7 @@ mvn -pl foundation-mapping-starter -am clean verify
 - [ ] Annotation processor MapStruct déclaré dans le POM
 - [ ] Tests passent
 - [ ] README avec exemple d'utilisation dans un service
-- [ ] `mvn -pl foundation-mapping-starter -am clean verify` → BUILD SUCCESS
+- [ ] `mvn -pl foundation-mapping-starter -am clean install` → BUILD SUCCESS
 
 ---
 
@@ -918,7 +918,7 @@ class NatsAutoConfigurationTest {
 ### Validation
 
 ```bash
-mvn -pl foundation-nats-starter -am clean verify
+mvn -pl foundation-nats-starter -am clean install
 ```
 
 ### ✅ DoD Phase 11
@@ -927,7 +927,7 @@ mvn -pl foundation-nats-starter -am clean verify
 - [ ] `@ConditionalOnClass(Connection.class)` — aucun bean si NATS absent
 - [ ] Tests unitaires + intégration passent
 - [ ] README avec exemple publish/subscribe et configuration YAML
-- [ ] `mvn -pl foundation-nats-starter -am clean verify` → BUILD SUCCESS
+- [ ] `mvn -pl foundation-nats-starter -am clean install` → BUILD SUCCESS
 - [ ] Review reviewer (contrôle idempotence, enveloppe) : Accepted
 
 ---
@@ -949,7 +949,7 @@ GUIDELINE: docs/guidelines/client-generation-guidelines.md
 SCOPE:     WebClient.Builder pré-configuré avec ExchangeFilterFunction pour :
            - propagation X-Correlation-Id
            - injection Bearer token depuis SecurityContext
-           Timeouts configurables par client (foundation.http-client.{name}.connect-timeout).
+           Timeouts configurables par client (foundation.http-client.clients.{name}.connect-timeout).
            @ConditionalOnClass(WebClient.class).
 ```
 
@@ -988,7 +988,7 @@ class CorrelationIdFilterTest {
 ### Validation
 
 ```bash
-mvn -pl foundation-http-client-starter -am clean verify
+mvn -pl foundation-http-client-starter -am clean install
 ```
 
 ### ✅ DoD Phase 12
@@ -997,7 +997,7 @@ mvn -pl foundation-http-client-starter -am clean verify
 - [ ] `@ConditionalOnMissingBean` sur WebClient.Builder
 - [ ] Tests WireMock : 2xx, 4xx, 5xx, timeout
 - [ ] Skill `ai/skills/openapi-client-generation/SKILL.md` cité dans le README
-- [ ] `mvn -pl foundation-http-client-starter -am clean verify` → BUILD SUCCESS
+- [ ] `mvn -pl foundation-http-client-starter -am clean install` → BUILD SUCCESS
 - [ ] Review reviewer (contrôle correlation, timeout, pas de retry implicite) : Accepted
 
 ---
@@ -1046,7 +1046,7 @@ class CorrelationIdSoapInterceptorTest {
 ### Validation
 
 ```bash
-mvn -pl foundation-soap-client-starter -am clean verify
+mvn -pl foundation-soap-client-starter -am clean install
 ```
 
 ### ✅ DoD Phase 13
@@ -1054,7 +1054,7 @@ mvn -pl foundation-soap-client-starter -am clean verify
 - [ ] `X-Correlation-Id` propagé dans les appels SOAP sortants
 - [ ] `@ConditionalOnClass(JaxWsProxyFactoryBean.class)`
 - [ ] Skill `ai/skills/wsdl-client-generation/SKILL.md` cité dans le README
-- [ ] `mvn -pl foundation-soap-client-starter -am clean verify` → BUILD SUCCESS
+- [ ] `mvn -pl foundation-soap-client-starter -am clean install` → BUILD SUCCESS
 - [ ] Review reviewer : Accepted
 
 ---
@@ -1136,7 +1136,7 @@ class DataAutoConfigurationIntegrationTest {
 ### Validation
 
 ```bash
-mvn -pl foundation-data-starter -am clean verify
+mvn -pl foundation-data-starter -am clean install
 # Testcontainers démarre automatiquement PostgreSQL
 ```
 
@@ -1157,7 +1157,7 @@ Copilot Chat → agent "reviewer"
 - [ ] `@EnableJpaAuditing` configuré
 - [ ] Aucune entité métier dans le starter
 - [ ] Tests Testcontainers PostgreSQL passent
-- [ ] `mvn -pl foundation-data-starter -am clean verify` → BUILD SUCCESS
+- [ ] `mvn -pl foundation-data-starter -am clean install` → BUILD SUCCESS
 - [ ] Review reviewer : Accepted
 
 ---
@@ -1216,7 +1216,7 @@ class JwtTestUtilsTest {
 ### Validation
 
 ```bash
-mvn -pl foundation-test-starter -am clean verify
+mvn -pl foundation-test-starter -am clean install
 # Vérifier que le JAR produit ne contient que des classes de test
 ```
 
@@ -1235,7 +1235,7 @@ Copilot Chat → agent "test-engineer"
 - [ ] PostgreSQL container helper avec configuration pré-remplie
 - [ ] Aucune dépendance runtime (tout en scope `test` ou `provided`)
 - [ ] Tests du helper passent
-- [ ] `mvn -pl foundation-test-starter -am clean verify` → BUILD SUCCESS
+- [ ] `mvn -pl foundation-test-starter -am clean install` → BUILD SUCCESS
 - [ ] Review test-engineer : Accepted
 
 ---
@@ -1254,7 +1254,34 @@ Créer un Maven Archetype permettant de générer un nouveau service microservic
 
 Le `foundation-sample-service` est supprimé du socle. Les services consommateurs vivent en dehors de ce repository.
 
-### 🤖 Agent : `engineer` puis `architect`
+Contexte correctif à traiter dans cette phase :
+- l'implémentation actuelle inclut encore la sécurité par défaut dans le template généré
+- la capacité `security` doit être rendue réellement optionnelle, conformément à la documentation
+
+Les artefacts `foundation-platform` sont publiés (JAR unique ou plusieurs JARs selon les modules) dans un repository Maven (Nexus, Artifactory ou équivalent), puis consommés par les services générés.
+
+Quand Maven lance `archetype:generate`, la résolution doit suivre cet ordre :
+1. cache local `~/.m2/repository`
+2. repositories distants déclarés dans `~/.m2/settings.xml` (ou le contexte Maven effectif)
+
+### Séquence d'implémentation avec les agents du repo
+
+1. `engineer` : aligner le template archetype, le POM généré et les propriétés de génération.
+2. `test-engineer` : couvrir la génération archetype avec tests d'intégration, y compris sécurité optionnelle et résolution locale/distante.
+3. `architect` : vérifier la structure générée, les frontières de module et le respect de la composition par dépendances.
+4. `reviewer` : relire le module pour détecter les régressions, les écarts de périmètre et les incohérences doc/implémentation.
+
+### Étape corrective prioritaire — sécurité réellement optionnelle
+
+Cette étape est obligatoire avant de clôturer la phase 16.
+
+1. `engineer` : corriger le template POM généré pour que `foundation-security-starter` soit inclus uniquement si `-Dcapabilities` contient `security`.
+2. `engineer` : corriger les templates `application.yml` (main et test) pour que le bloc `spring.security.oauth2.resourceserver.jwt` soit conditionnel à `security`.
+3. `test-engineer` : adapter les tests d'intégration de génération archetype pour vérifier les deux cas :
+  - sans `security` : dépendance et bloc YAML absents
+  - avec `security` : dépendance et bloc YAML présents
+4. `engineer` : aligner la documentation du module archetype pour qu'elle reflète le comportement corrigé.
+5. `reviewer` : valider l'absence d'écart entre documentation, templates et assertions de tests.
 
 ### Capabilities obligatoires (toujours incluses)
 
@@ -1262,7 +1289,6 @@ Le `foundation-sample-service` est supprimé du socle. Les services consommateur
 |---|---|
 | `foundation-core-starter` | Correlation ID |
 | `foundation-api-starter` | Conventions REST, gestion d'erreurs |
-| `foundation-security-starter` | OAuth2 Resource Server JWT |
 | `foundation-logging-starter` | Logs structurés JSON |
 | `foundation-observability-starter` | Actuator, Micrometer |
 | `foundation-mapping-starter` | MapStruct |
@@ -1272,6 +1298,7 @@ Le `foundation-sample-service` est supprimé du socle. Les services consommateur
 
 | Clé | Starter ajouté |
 |---|---|
+| `security` | `foundation-security-starter` |
 | `data` | `foundation-data-starter` |
 | `nats` | `foundation-nats-starter` |
 | `http-client` | `foundation-http-client-starter` |
@@ -1285,7 +1312,7 @@ Le `foundation-sample-service` est supprimé du socle. Les services consommateur
 | `artifactId` | oui | — | Maven artifactId et nom du répertoire, ex. `my-service` |
 | `version` | oui | `0.0.1-SNAPSHOT` | Version Maven |
 | `serviceName` | oui | — | Préfixe PascalCase des classes Java, ex. `MyService` → `MyServiceApplication.java` |
-| `capabilities` | non | _(aucune)_ | Capabilities optionnelles en virgules : `data`, `nats`, `http-client`, `soap-client` |
+| `capabilities` | non | _(aucune)_ | Capabilities optionnelles en virgules : `security`, `data`, `nats`, `http-client`, `soap-client` |
 | `generateDockerfile` | non | `true` | Générer un `Dockerfile` minimal |
 | `generateGitlabCi` | non | `true` | Générer un `.gitlab-ci.yml` minimal |
 
@@ -1308,14 +1335,15 @@ SCOPE:  Maven Archetype générant un service Spring Boot hexagonal.
           -DartifactId      Maven artifactId, ex. my-service
           -Dversion         Maven version (défaut : 0.0.1-SNAPSHOT)
           -DserviceName     Préfixe PascalCase des classes Java, ex. MyService → MyServiceApplication.java
-          -Dcapabilities    Capabilities optionnelles séparées par virgules (data, nats, http-client, soap-client)
+          -Dcapabilities    Capabilities optionnelles séparées par virgules (security, data, nats, http-client, soap-client)
           -DgenerateDockerfile   Générer un Dockerfile minimal (défaut : true)
           -DgenerateGitlabCi    Générer un .gitlab-ci.yml minimal (défaut : true)
 
         CAPABILITIES OBLIGATOIRES (toujours incluses) :
-          core, api, security, logging, observability, mapping, test
+          core, api, logging, observability, mapping, test
 
         CAPABILITIES OPTIONNELLES (via -Dcapabilities) :
+          security    → foundation-security-starter + bloc spring.security.oauth2.resourceserver.jwt
           data        → foundation-data-starter + adapter/out/persistence + blocs datasource/jpa/flyway
           nats        → foundation-nats-starter + adapter/in/messaging + bloc foundation.nats
           http-client → foundation-http-client-starter + adapter/out/rest + bloc foundation.http-client
@@ -1410,13 +1438,6 @@ foundation:
   nats:
     server-url: nats://localhost:4222
 
-spring:
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://your-idp/.well-known/openid-configuration
-
 management:
   endpoints:
     web:
@@ -1432,8 +1453,16 @@ class ArchetypeGenerationTest {
     @Test
     void shouldGenerateProjectWithMandatoryCapabilitiesOnly() {
         // Exécuter archetype:generate sans -Dcapabilities
-        // Vérifier la présence de tous les starters obligatoires dans le POM généré
+      // Vérifier la présence de tous les 6 starters obligatoires dans le POM généré
+      // Vérifier l'absence de foundation-security-starter
         // Vérifier la structure de packages hexagonaux
+    }
+
+    @Test
+    void shouldIncludeSecurityStarterWhenCapabilityRequested() {
+      // Générer avec -Dcapabilities=security
+      // Vérifier foundation-security-starter dans le POM généré
+      // Vérifier le bloc spring.security.oauth2.resourceserver.jwt dans application.yml
     }
 
     @Test
@@ -1483,9 +1512,10 @@ class ArchetypeGenerationTest {
 
 ```bash
 # Build de l'archetype
-mvn -pl foundation-archetype -am clean verify
+mvn -pl foundation-archetype -am clean install
 
 # Test de génération locale
+# Maven doit d'abord utiliser le cache local, puis les repositories distants configurés dans settings.xml si nécessaire
 mvn archetype:generate \
   -DarchetypeGroupId=fr.francetv.foundation \
   -DarchetypeArtifactId=foundation-archetype \
@@ -1514,13 +1544,18 @@ Copilot Chat → agent "architect"
 → "Revue de foundation-archetype.
    Vérifier que l'archetype respecte la séparation hexagonale,
    que les capabilities obligatoires sont toujours présentes,
+  que security est bien optionnelle,
    que les capabilities optionnelles n'ajoutent que ce qui est demandé,
    et que le service généré compile sans erreur."
 ```
 
 ### ✅ DoD Phase 16
-- [ ] `mvn -pl foundation-archetype -am clean verify` → BUILD SUCCESS
-- [ ] Génération sans `-Dcapabilities` produit un projet avec les 7 starters obligatoires
+- [ ] `mvn -pl foundation-archetype -am clean install` → BUILD SUCCESS
+- [ ] La résolution Maven suit l'ordre local `~/.m2/repository` puis repositories distants de `settings.xml`
+- [ ] Génération sans `-Dcapabilities` produit un projet avec les 6 starters obligatoires
+- [ ] Génération sans `-Dcapabilities` n'ajoute pas `foundation-security-starter`
+- [ ] Génération sans `-Dcapabilities` ne contient pas le bloc `spring.security.oauth2.resourceserver.jwt`
+- [ ] Génération avec `-Dcapabilities=security` ajoute `foundation-security-starter` et le bloc security associé
 - [ ] Chaque capability optionnelle ajoute exactement le bon starter ET les bons packages
 - [ ] `application.yml` généré ne contient que les blocs de config des capabilities sélectionnées
 - [ ] Le projet généré compile avec `mvn compile`
@@ -1531,10 +1566,351 @@ Copilot Chat → agent "architect"
 - [ ] Tests de génération passent (toutes combinaisons)
 - [ ] README dans le projet généré avec instructions démarrage
 - [ ] Review architect : Accepted
+- [ ] Review reviewer : Accepted
 
 ---
 
-## Phase 17 — Validation globale
+## Phase 17 — Publication Maven des artefacts
+
+### Objectif
+Configurer la publication des artefacts du socle dans le **GitLab Package Registry** du projet,
+puis vérifier la consommation depuis un service généré hors de ce repository.
+
+### Contexte : pourquoi trois POMs ont besoin de `distributionManagement`
+
+`foundation-parent` hérite de `spring-boot-starter-parent` (pas du root agrégateur), et `foundation-bom` n'a pas de parent Maven. Le `distributionManagement` déclaré dans le root agrégateur n'est **pas hérité** par ces modules. Il faut donc déclarer `distributionManagement` dans :
+
+- `pom.xml` (root agrégateur)
+- `foundation-parent/pom.xml` (parent Maven de tous les starters)
+- `foundation-bom/pom.xml` (standalone, aucun parent)
+
+Tous les modules qui héritent de `foundation-parent` (starters, common, archetype) récupèrent automatiquement le `distributionManagement` via l'héritage Maven.
+
+### 🤖 Agent : `engineer`
+
+### Étape 1 — `distributionManagement` vers GitLab Package Registry
+
+```
+Copilot Chat → agent "engineer"
+
+TÂCHE : Configurer distributionManagement dans foundation-parent/pom.xml et foundation-bom/pom.xml
+        pour publier dans le GitLab Package Registry du projet.
+        Les credentials ne sont JAMAIS dans le POM.
+        CI_JOB_TOKEN est injecté automatiquement par GitLab CI — aucune variable manuelle requise.
+```
+
+Contenu attendu dans `foundation-parent/pom.xml` et `foundation-bom/pom.xml` :
+
+```xml
+<distributionManagement>
+  <repository>
+    <id>gitlab-maven</id>
+    <url>${env.CI_API_V4_URL}/projects/${env.CI_PROJECT_ID}/packages/maven</url>
+  </repository>
+  <snapshotRepository>
+    <id>gitlab-maven</id>
+    <url>${env.CI_API_V4_URL}/projects/${env.CI_PROJECT_ID}/packages/maven</url>
+  </snapshotRepository>
+</distributionManagement>
+```
+
+`CI_API_V4_URL` et `CI_PROJECT_ID` sont injectés automatiquement par GitLab CI dans chaque job.
+En local, Maven utilise `mvn install` (voir ci-dessous) — pas `mvn deploy`.
+
+### Étape 2 — `ci-settings.xml` avec `CI_JOB_TOKEN`
+
+Le fichier `ci-settings.xml` (versioné, sans credentials) configure l'authentification
+vers le GitLab Package Registry via le token de job injecté automatiquement :
+
+```xml
+<settings>
+  <servers>
+    <server>
+      <id>gitlab-maven</id>
+      <username>gitlab-ci-token</username>
+      <password>${env.CI_JOB_TOKEN}</password>
+    </server>
+  </servers>
+</settings>
+```
+
+**`CI_JOB_TOKEN` est automatiquement disponible dans tous les jobs GitLab CI.** Aucune variable
+manuelle à créer dans GitLab CI/CD → Settings → Variables.
+
+### Étape 3 — Workflows de publication
+
+**En local (développeur)** — installer dans `~/.m2/repository` :
+
+```bash
+# Installation locale — aucun distributionManagement requis
+mvn clean install
+```
+
+**En CI GitLab** — le pipeline `publish-snapshot` ou `publish-release` exécute :
+
+```bash
+# Déploiement vers le GitLab Package Registry du projet
+# CI_API_V4_URL, CI_PROJECT_ID et CI_JOB_TOKEN sont injectés automatiquement
+mvn -B clean deploy -DskipTests=true --settings ci-settings.xml
+```
+
+**Depuis une machine développeur vers le Package Registry** (optionnel) :
+
+Créer un Deploy Token dans GitLab (Settings → Repository → Deploy tokens)
+avec les scopes `read_package_registry` + `write_package_registry`, puis l'ajouter
+dans `~/.m2/settings.xml` (jamais dans les fichiers versionnés) :
+
+```xml
+<servers>
+  <server>
+    <id>gitlab-maven</id>
+    <username>MON_DEPLOY_TOKEN_USERNAME</username>
+    <password>MON_DEPLOY_TOKEN_VALUE</password>
+  </server>
+</servers>
+```
+
+Puis exécuter :
+
+```bash
+export CI_API_V4_URL=https://gitlab.example.com/api/v4
+export CI_PROJECT_ID=<ID_DU_PROJET>
+mvn clean deploy
+```
+
+### Étape 4 — Vérifier la consommation depuis un service généré
+
+```bash
+# Après publication, générer un service consommateur
+mvn archetype:generate \
+  -DarchetypeGroupId=fr.francetv.foundation \
+  -DarchetypeArtifactId=foundation-archetype \
+  -DarchetypeVersion=0.0.1-SNAPSHOT \
+  -DgroupId=fr.francetv.consumer \
+  -DartifactId=consumer-service \
+  -DserviceName=ConsumerService \
+  -Dcapabilities=security,data \
+  -DinteractiveMode=false
+
+cd consumer-service && mvn clean install
+```
+
+### 🤖 Review : agent `architect`
+
+```
+Copilot Chat → agent "architect"
+→ "Vérifier que distributionManagement est déclaré dans foundation-parent, foundation-bom et le POM racine.
+   Vérifier que les URLs pointent vers le GitLab Package Registry avec les variables CI.
+   Vérifier que les credentials ne sont pas dans le POM ni dans les fichiers versionés.
+   Vérifier que les artefacts sont accessibles depuis un projet consommateur."
+```
+
+### ✅ DoD Phase 17
+- [x] `distributionManagement` déclaré dans `pom.xml` (root), `foundation-parent/pom.xml`, `foundation-bom/pom.xml`
+- [x] ID de repository unifié : `gitlab-maven` dans les trois POMs et dans `ci-settings.xml`
+- [x] URLs pointent vers `${env.CI_API_V4_URL}/projects/${env.CI_PROJECT_ID}/packages/maven`
+- [x] `ci-settings.xml` utilise `CI_JOB_TOKEN` (pas de NEXUS_USER/NEXUS_PASSWORD)
+- [ ] `mvn clean deploy` en CI → BUILD SUCCESS et artefacts publiés dans le Package Registry
+- [x] `mvn clean install` en local → BUILD SUCCESS (installation dans `~/.m2`)
+- [ ] Artefacts visibles dans GitLab → Packages & Registries → Package Registry
+- [ ] Service consommateur généré et compilé depuis les artefacts publiés
+- [x] Version publiée traçable (tag Git + version Maven)
+- [ ] Review architect : Accepted
+
+---
+
+## Phase 18 — Gouvernance versionning et traçabilité des principes
+
+### Objectif
+Mettre en place le cycle de version `SNAPSHOT`/release piloté par GitLab CI et imposer la règle de traçabilité : tout changement de comportement ou de principe inclut la mise à jour documentaire associée.
+
+### Principes adoptés
+
+- **Décision manuelle** : le choix major/minor/patch est validé par l'équipe, pas automatisé.
+- **Snapshot automatique** : tout merge sur la branche principale publie automatiquement un snapshot.
+- **Release sur tag** : la publication d'une release est déclenchée uniquement par un tag Git `vX.Y.Z` protégé.
+- **Traçabilité obligatoire** : toute MR modifiant un comportement ou un principe inclut la mise à jour des documents de référence.
+
+### 🤖 Agent : `engineer`
+
+### Étape 1 — Cycle de version
+
+```
+Copilot Chat → agent "engineer"
+
+TÂCHE : Documenter et automatiser le cycle de version snapshot/release.
+
+COMMANDES DU CYCLE :
+
+# 1. Décider du numéro de release en équipe (major.minor.patch)
+
+# 2. Bumper la version
+mvn versions:set -DnewVersion=X.Y.Z -DgenerateBackupPoms=false
+
+# 3. Committer et tagger
+git add .
+git commit -m "release: prepare X.Y.Z"
+git tag vX.Y.Z
+git push origin vX.Y.Z
+# → le pipeline publish-release se déclenche automatiquement
+
+# 4. Repasser en SNAPSHOT
+mvn versions:set -DnewVersion=X.Y.Z+1-SNAPSHOT -DgenerateBackupPoms=false
+git add .
+git commit -m "release: prepare next development iteration X.Y.Z+1-SNAPSHOT"
+git push origin main
+```
+
+### Étape 2 — Pipeline GitLab CI du socle
+
+```
+Copilot Chat → agent "engineer"
+
+TÂCHE : Créer .gitlab-ci.yml pour foundation-platform (pipeline interne du socle).
+        Ce fichier est distinct du .gitlab-ci.yml généré dans les services consommateurs.
+        CI_JOB_TOKEN, CI_API_V4_URL et CI_PROJECT_ID sont injectés automatiquement par GitLab CI.
+        Aucune variable manuelle à créer dans GitLab CI/CD → Settings → Variables.
+```
+
+```yaml
+# .gitlab-ci.yml — foundation-platform (socle uniquement)
+stages:
+  - build
+  - test
+  - publish
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  MAVEN_IMAGE: "maven:3.9-eclipse-temurin-21-alpine"
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .m2/repository/
+
+build:
+  stage: build
+  image: $MAVEN_IMAGE
+  script:
+    - mvn -B compile
+
+test:
+  stage: test
+  image: $MAVEN_IMAGE
+  script:
+    - mvn -B verify
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - "**/target/surefire-reports/*.xml"
+        - "**/target/failsafe-reports/*.xml"
+
+# Snapshot automatique sur les branches d'intégration
+# CI_JOB_TOKEN, CI_API_V4_URL et CI_PROJECT_ID sont injectés automatiquement par GitLab CI
+publish-snapshot:
+  stage: publish
+  image: $MAVEN_IMAGE
+  script:
+    - mvn -B clean deploy -DskipTests=true --settings ci-settings.xml
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "develop"'
+      when: on_success
+
+# Release uniquement sur tag vX.Y.Z protégé
+publish-release:
+  stage: publish
+  image: $MAVEN_IMAGE
+  script:
+    - mvn -B clean deploy -DskipTests=true --settings ci-settings.xml
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+      when: on_success
+```
+
+Le fichier `ci-settings.xml` (versioné, sans credentials) :
+
+```xml
+<settings>
+  <servers>
+    <server>
+      <id>gitlab-maven</id>
+      <username>gitlab-ci-token</username>
+      <password>${env.CI_JOB_TOKEN}</password>
+    </server>
+  </servers>
+</settings>
+```
+
+### Étape 3 — Règle de traçabilité MR
+
+```
+Copilot Chat → agent "reviewer"
+→ "Vérifier que chaque MR modifiant un comportement ou un principe
+   inclut la mise à jour des documents de référence concernés.
+   Refuser le merge si la documentation n'est pas alignée."
+```
+
+### 🤖 Review : agent `architect`
+
+```
+Copilot Chat → agent "architect"
+→ "Vérifier que le pipeline distingue bien les flux snapshot et release.
+   Vérifier que publish-release est conditionné uniquement au tag vX.Y.Z protégé.
+   Vérifier que les credentials ne sont jamais hardcodés dans les fichiers versionés."
+```
+
+### ✅ DoD Phase 18
+- [x] Cycle version snapshot → release → snapshot documenté et exécuté une fois
+- [x] `mvn versions:set` utilisé pour bumper les versions (jamais d'édition manuelle du POM)
+- [x] `.gitlab-ci.yml` du socle créé avec `publish-snapshot` et `publish-release` séparés
+- [x] `publish-snapshot` se déclenche sur `main`/`develop`, pas sur les tags
+- [x] `publish-release` se déclenche uniquement sur tag `vX.Y.Z` protégé
+- [x] `ci-settings.xml` versioné sans credentials (variables CI uniquement)
+- [x] Retour en `-SNAPSHOT` après chaque release documenté et exécuté
+- [x] Règle de traçabilité MR appliquée et validée
+- [ ] Review architect : Accepted
+- [ ] Review reviewer : Accepted
+
+---
+
+## Phase 19 — Alignement documentation et IA
+
+### Objectif
+Mettre à jour l'ensemble des documents de référence pour refléter les décisions prises dans les phases 17 et 18 : publication Maven, gouvernance versionning, cycle snapshot/release, traçabilité code+documentation.
+
+Cette phase est toujours exécutée en dernier pour garantir que la documentation reflète l'état réel du code et du pipeline.
+
+### 🤖 Séquence d'implémentation avec les agents du repo
+
+1. `engineer` : mettre à jour les documents source de vérité (`AGENTS.md`, `PRD.md`, `README.md`, `docs/architecture.md`, `docs/guidelines/*`, `ai/instructions/*`, `ai/prompts/*`, `ROADMAP.md`).
+2. `architect` : vérifier la cohérence des règles, des frontières de responsabilités et du vocabulaire entre les docs.
+3. `reviewer` : contrôler qu'aucune consigne contradictoire ne subsiste dans les instructions IA et les chemins d'exécution.
+4. `test-engineer` : valider les exemples et commandes documentés quand des comportements vérifiables sont décrits.
+
+### Points à mettre à jour
+
+- Publication Maven : `distributionManagement`, credentials CI, workflow snapshot/release.
+- Gouvernance versionning : cycle SNAPSHOT → release → SNAPSHOT, tags Git protégés, pipeline CI du socle.
+- Résolution Maven : cache local `~/.m2/repository` puis repositories distants de `settings.xml`.
+- Génération hors repository : consommation de l'archetype depuis Nexus/Artifactory.
+- Sécurité optionnelle dans l'archetype : conforme à l'implémentation corrigée en phase 16.
+- Traçabilité : règle MR, obligation de mise à jour documentaire.
+- Parcours d'implémentation piloté par les agents déjà définis dans le repo.
+
+### ✅ DoD Phase 19
+- [x] Toutes les docs de référence synchronisées avec les décisions des phases 17 et 18
+- [x] `AGENTS.md` reflète les règles de gouvernance versionning et traçabilité
+- [x] `docs/architecture.md` décrit le cycle snapshot/release et la publication Maven
+- [x] Aucun texte ne présente la sécurité comme capacité obligatoire de l'archetype
+- [x] La résolution Maven locale puis distante est explicitement décrite
+- [x] La ROADMAP est cohérente de bout en bout
+- [ ] Review architect : Accepted
+- [ ] Review reviewer : Accepted
+
+---
+
+## Phase 20 — Validation globale
 
 ### Objectif
 Vérification complète de tout le socle en une seule commande.
@@ -1543,13 +1919,13 @@ Vérification complète de tout le socle en une seule commande.
 
 ```bash
 # Build complet
-mvn clean verify
+mvn clean install
 
 # Build sans les tests d'intégration (rapide)
-mvn clean verify -DskipITs
+mvn clean install -DskipITs
 
 # Avec rapport de couverture
-mvn clean verify jacoco:report
+mvn clean install jacoco:report
 ```
 
 ### Vérifications manuelles
@@ -1575,8 +1951,8 @@ Copilot Chat → agent "architect"
    Comparer avec docs/architecture.md section 4."
 ```
 
-### ✅ DoD Phase 17
-- [ ] `mvn clean verify` → BUILD SUCCESS sur TOUS les modules
+### ✅ DoD Phase 20
+- [ ] `mvn clean install` → BUILD SUCCESS sur TOUS les modules
 - [ ] Aucun test en échec
 - [ ] Aucune dépendance cyclique
 - [ ] `foundation-archetype` génère un service compilable avec toutes les combinaisons de capabilities
@@ -1607,7 +1983,10 @@ Copilot Chat → agent "architect"
 | 14 | foundation-data-starter | engineer | 04-create-data-starter | ⬜ |
 | 15 | foundation-test-starter | engineer+test-engineer | /implement-starter | ⬜ |
 | 16 | foundation-archetype | engineer+architect | 16-create-archetype | ⬜ |
-| 17 | Validation globale | architect | - | ⬜ |
+| 17 | Publication Maven | engineer+architect | - | ✅ |
+| 18 | Gouvernance versionning et traçabilité | engineer+architect+reviewer+test-engineer | - | ✅ |
+| 19 | Alignement documentation et IA | engineer+architect+reviewer+test-engineer | - | 🔄 |
+| 20 | Validation globale | architect | - | ⬜ |
 
 Remplacer ⬜ par ✅ au fur et à mesure.
 
@@ -1615,7 +1994,7 @@ Remplacer ⬜ par ✅ au fur et à mesure.
 
 ## Règles absolues à respecter tout au long du développement
 
-1. **Ne jamais passer à la phase suivante** si `mvn clean verify` échoue.
+1. **Ne jamais passer à la phase suivante** si `mvn clean install` échoue.
 2. **Chaque starter** doit avoir ses tests avant d'être déclaré terminé.
 3. **Chaque phase** se termine par une review avec l'agent approprié.
 4. **Jamais de `ddl-auto=update`** dans aucun fichier de configuration.
@@ -1625,3 +2004,6 @@ Remplacer ⬜ par ✅ au fur et à mesure.
 8. **Jamais d'adaptateur Keycloak** ou IDP-spécifique.
 9. **Tout bean auto-configuré** doit être `@ConditionalOnMissingBean`.
 10. **Toute propriété** doit être typée via `@ConfigurationProperties`.
+11. **Jamais de credentials** dans les fichiers versionnés (POM, settings, CI).
+12. **Toute modification de version** passe par `mvn versions:set` uniquement.
+13. **Toute MR changeant un comportement ou un principe** doit mettre à jour les documents source de vérité.

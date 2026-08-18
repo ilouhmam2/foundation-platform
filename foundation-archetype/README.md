@@ -27,7 +27,7 @@ mvn archetype:generate \
 | `artifactId`         | yes      | —                  | Maven artifactId and directory name, e.g. `my-service`                      |
 | `version`            | yes      | `0.0.1-SNAPSHOT`   | Maven version                                                               |
 | `serviceName`        | yes      | —                  | PascalCase Java class prefix, e.g. `MyService` → `MyServiceApplication.java` |
-| `capabilities`       | no       | _(none)_           | Comma-separated optional capabilities (see below)                           |
+| `capabilities`       | no       | _(none)_           | Comma-separated optional capabilities: `security`, `data`, `nats`, `http-client`, `soap-client` |
 | `generateDockerfile` | no       | `true`             | Generate a minimal `Dockerfile`                                             |
 | `generateGitlabCi`   | no       | `true`             | Generate a minimal `.gitlab-ci.yml`                                         |
 | `foundationVersion`  | no       | `0.0.1-SNAPSHOT`   | Version of `foundation-parent` and `foundation-bom` used in the generated POM |
@@ -38,7 +38,6 @@ mvn archetype:generate \
 |------------------------------|----------------------------------|
 | `foundation-core-starter`    | Correlation ID filter            |
 | `foundation-api-starter`     | REST API conventions, error handling |
-| `foundation-security-starter`| OAuth2 Resource Server (JWT)     |
 | `foundation-logging-starter` | Structured JSON logging          |
 | `foundation-observability-starter` | Actuator, Micrometer, OpenTelemetry |
 | `foundation-mapping-starter` | MapStruct                        |
@@ -48,10 +47,13 @@ mvn archetype:generate \
 
 | Key           | Starter added                      | Packages added                             | YAML blocks added                          |
 |---------------|------------------------------------|--------------------------------------------|-------------------------------------------|
+| `security`    | `foundation-security-starter`      | none                                       | `spring.security.oauth2.resourceserver.jwt` |
 | `data`        | `foundation-data-starter`          | `infrastructure/adapter/out/persistence`   | `spring.datasource`, `spring.jpa`, `spring.flyway` |
 | `nats`        | `foundation-nats-starter`          | `infrastructure/adapter/in/messaging`      | `foundation.nats`                          |
 | `http-client` | `foundation-http-client-starter`   | `infrastructure/adapter/out/rest`          | `foundation.http-client`                   |
 | `soap-client` | `foundation-soap-client-starter`   | `infrastructure/adapter/out/soap`          | `foundation.soap-client`                   |
+
+`security` is optional and is only included when explicitly passed in `-Dcapabilities`.
 
 ## Generated project structure
 
@@ -100,14 +102,19 @@ my-service/
 mvn -pl foundation-archetype -am clean verify
 ```
 
-## Local installation (required before generating)
+## Generating a service
+
+Maven resolves the archetype from the local `~/.m2/repository` cache first. If it is not present locally, Maven uses the remote repositories declared in `~/.m2/settings.xml` (or the active Maven settings profile).
+
+For local/offline development, install the archetype first:
 
 ```bash
 mvn -pl foundation-archetype -am clean install -DskipTests
 ```
 
+On Windows (PowerShell):
 
-
+```powershell
 mvn archetype:generate `
   "-DarchetypeCatalog=local" `
   "-DarchetypeGroupId=fr.francetv.foundation" `
@@ -118,3 +125,4 @@ mvn archetype:generate `
   "-DserviceName=CompileTest" `
   "-Dcapabilities=data,nats" `
   "-DinteractiveMode=false"
+```

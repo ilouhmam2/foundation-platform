@@ -12,6 +12,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
  * available as a shared MapStruct configuration class that consuming services reference
  * in their {@code @Mapper(config = FoundationMapperConfig.class)} declarations.
  *
+ * <p>This class is intentionally empty. It exists in {@code AutoConfiguration.imports} solely
+ * as a classpath-presence guard: the {@link ConditionalOnClass} check ensures that if MapStruct
+ * is absent from the consumer's classpath the auto-configuration is skipped and no attempt is
+ * made to load {@code FoundationMapperConfig}.
+ *
  * <p>Consuming services must declare the following dependency to use MapStruct:
  * <pre>{@code
  * <dependency>

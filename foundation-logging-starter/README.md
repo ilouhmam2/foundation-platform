@@ -97,3 +97,9 @@ Place your own `logback-spring.xml` in `src/main/resources` of your service to f
 ## Conditional activation
 
 The auto-configuration activates only when Logback (`ch.qos.logback.classic.Logger`) is on the classpath. Services that exclude Logback in favour of Log4j2 will not be affected.
+
+---
+
+## Transitive dependencies
+
+`logstash-logback-encoder` and `janino` are **intentionally non-optional** transitive dependencies of this starter. They are required for the JSON appender and for Logback `<if>` conditional processing respectively. Any consumer of this starter will receive them on its compile and runtime classpath.

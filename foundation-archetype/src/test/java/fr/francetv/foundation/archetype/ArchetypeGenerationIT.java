@@ -43,6 +43,7 @@ class ArchetypeGenerationIT {
 
         assertMandatoryStructure(projectDir, "test-service", "fr/francetv/test");
         assertPomContainsAllMandatoryStarters(projectDir);
+        assertThat(projectContent(projectDir, "pom.xml")).doesNotContain("foundation-security-starter");
         assertThat(projectContent(projectDir, "pom.xml")).doesNotContain("foundation-data-starter");
         assertThat(projectContent(projectDir, "pom.xml")).doesNotContain("foundation-nats-starter");
         assertThat(projectContent(projectDir, "pom.xml")).doesNotContain("foundation-http-client-starter");
@@ -51,6 +52,24 @@ class ArchetypeGenerationIT {
         assertThat(projectDir.resolve(".gitlab-ci.yml")).exists();
         assertThat(projectContent(projectDir, "src/main/resources/application.yml")).doesNotContain("datasource:");
         assertThat(projectContent(projectDir, "src/main/resources/application.yml")).doesNotContain("nats:");
+        assertThat(projectContent(projectDir, "src/main/resources/application.yml")).doesNotContain("oauth2:");
+        assertThat(projectContent(projectDir, "src/test/resources/application.yml")).doesNotContain("oauth2:");
+    }
+
+    // -------------------------------------------------------------------------
+    // Security capability
+    // -------------------------------------------------------------------------
+
+    @Test
+    void shouldIncludeSecurityStarterWhenCapabilityRequested() throws Exception {
+        Path projectDir = generate("with-security", "TestService", "test-service", "security");
+
+        assertThat(projectContent(projectDir, "pom.xml")).contains("foundation-security-starter");
+        assertThat(projectContent(projectDir, "src/main/resources/application.yml")).contains("oauth2:");
+        assertThat(projectContent(projectDir, "src/main/resources/application.yml")).contains("issuer-uri:");
+        assertThat(projectContent(projectDir, "src/test/resources/application.yml")).contains("oauth2:");
+        // Mandatory starters must still be present
+        assertPomContainsAllMandatoryStarters(projectDir);
     }
 
     // -------------------------------------------------------------------------
@@ -223,7 +242,6 @@ class ArchetypeGenerationIT {
         String pom = projectContent(projectDir, "pom.xml");
         assertThat(pom).contains("foundation-core-starter");
         assertThat(pom).contains("foundation-api-starter");
-        assertThat(pom).contains("foundation-security-starter");
         assertThat(pom).contains("foundation-logging-starter");
         assertThat(pom).contains("foundation-observability-starter");
         assertThat(pom).contains("foundation-mapping-starter");

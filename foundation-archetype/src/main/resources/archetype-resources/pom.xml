@@ -43,10 +43,6 @@
     </dependency>
     <dependency>
       <groupId>fr.francetv.foundation</groupId>
-      <artifactId>foundation-security-starter</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>fr.francetv.foundation</groupId>
       <artifactId>foundation-logging-starter</artifactId>
     </dependency>
     <dependency>
@@ -63,6 +59,13 @@
       <scope>test</scope>
     </dependency>
 
+#if($capabilities.contains("security"))
+    <!-- Optional capability: security -->
+    <dependency>
+      <groupId>fr.francetv.foundation</groupId>
+      <artifactId>foundation-security-starter</artifactId>
+    </dependency>
+#end
 #if($capabilities.contains("data"))
     <!-- Optional capability: data -->
     <dependency>

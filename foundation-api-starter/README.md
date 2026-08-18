@@ -35,13 +35,17 @@ to the `X-Correlation-Id` request header.
 | Exception                          | HTTP Status |
 |------------------------------------|-------------|
 | `MethodArgumentNotValidException`  | 400         |
-| `ConstraintViolationException`     | 400         |
+| `ConstraintViolationException`     | 400 \*      |
 | `HttpMessageNotReadableException`  | 400         |
 | `FoundationBusinessException`      | 400         |
 | `ResponseStatusException`          | status code |
 | `NoResourceFoundException`         | 404         |
 | `FoundationTechnicalException`     | 500         |
 | `Exception` (catch-all)            | 500         |
+
+\* Handled by `ValidationExceptionHandler`, a separate `@RestControllerAdvice` registered only when
+`jakarta.validation.ConstraintViolationException` is on the classpath (i.e. when
+`spring-boot-starter-validation` is declared as a dependency).
 
 ---
 

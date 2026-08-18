@@ -121,14 +121,85 @@ mvn archetype:generate \
 ```
 
 Must:
-- Always include the 7 mandatory starters (core, api, security, logging, observability, mapping, test)
-- Allow optional capabilities to be selected via `-Dcapabilities` at generation time
+- Always include the 6 mandatory starters (core, api, logging, observability, mapping, test)
+- Allow optional capabilities to be selected via `-Dcapabilities` at generation time, including `security`
 - Generate a hexagonal (ports-and-adapters) package structure
 - Generate a minimal `application.yml` with only the blocks for the selected capabilities
 - Generate a POM that imports `foundation-bom`
 
 Must not:
 - Contain business logic or business entities
-- Generate deployment artifacts (Dockerfile, Helm, CI)
+- Generate deployment artifacts inside this repository
 - Force optional starters when the capability was not selected
 - Be used as a sample or demo service inside the socle
+
+---
+
+## 9. Maven publication
+
+Artifacts from this repository are published to the **GitLab Package Registry**.
+
+`distributionManagement` must be declared in three POMs because Maven inheritance does not cross parent boundaries:
+
+| POM | Reason |
+|---|---|
+| `pom.xml` | Root aggregator publish target |
+| `foundation-parent/pom.xml` | Does not inherit from the root aggregator |
+| `foundation-bom/pom.xml` | Has no Maven parent |
+
+All three must use the same repository id `gitlab-maven` and the URL:
+```
+${env.CI_API_V4_URL}/projects/${env.CI_PROJECT_ID}/packages/maven
+```
+
+Credentials must never appear in versioned files. `ci-settings.xml` is versioned but contains only `${env.CI_JOB_TOKEN}` (injected automatically by GitLab CI).
+
+**Local install:**
+
+```bash
+mvn clean install
+```
+
+**CI deploy:**
+
+```bash
+mvn -B clean deploy -DskipTests=true --settings ci-settings.xml
+```
+
+---
+
+## 10. Versioning governance
+
+Version numbers are managed exclusively via `mvn versions:set`. Direct POM edits are forbidden.
+
+```bash
+# Release
+mvn versions:set -DnewVersion=X.Y.Z -DgenerateBackupPoms=false
+
+# Return to SNAPSHOT
+mvn versions:set -DnewVersion=X.Y.Z+1-SNAPSHOT -DgenerateBackupPoms=false
+```
+
+The CI pipeline automatically publishes:
+
+- snapshots on `main` and `develop` branch merges (`publish-snapshot`)
+- releases on protected tags matching `vX.Y.Z` (`publish-release`)
+
+---
+
+## 11. MR traceability
+
+Every MR that changes a behavior or a platform principle must also update the relevant documentation.
+
+Source-of-truth documents:
+
+- `AGENTS.md`
+- `PRD.md`
+- `README.md`
+- `docs/architecture.md`
+- `docs/guidelines/*`
+- `ai/instructions/*`
+- `ai/prompts/*`
+- `ROADMAP.md`
+
+A MR that modifies code without updating documentation is not compliant with this rule and must be rejected.

@@ -16,6 +16,7 @@ It provides:
 
 - Maven parent
 - Dependency BOM
+- Publishable Maven artifacts (single JAR or multiple JARs, depending on module boundaries)
 - Spring Boot starters
 - API standards
 - Security standards
@@ -42,6 +43,7 @@ It provides:
 - NATS
 - OAuth2 Resource Server / JWT
 - MapStruct
+- Lombok
 - OpenAPI Generator
 - Apache CXF
 - Actuator
@@ -88,6 +90,34 @@ It must not force every service to use:
 - WebClient
 - PostgreSQL
 
+### Rule 4 - Publishable Artifacts and Repository Distribution
+
+`foundation-platform` must be consumable as published Maven artifacts.
+
+The platform may be consumed as:
+
+- one aggregated deliverable when appropriate for the target use case
+- multiple modular JARs following capability boundaries
+
+Artifacts must be publishable to a Maven-compatible repository manager:
+
+- Nexus
+- Artifactory
+- or equivalent Maven repository
+
+The concrete target in CI is the **GitLab Package Registry** of this project, configured via `distributionManagement` in three POMs:
+
+- `pom.xml` (root aggregator)
+- `foundation-parent/pom.xml`
+- `foundation-bom/pom.xml`
+
+All three must use the same repository id `gitlab-maven` and the URL pattern:
+```
+${env.CI_API_V4_URL}/projects/${env.CI_PROJECT_ID}/packages/maven
+```
+
+Credentials must never be hardcoded in versioned files. CI uses `CI_JOB_TOKEN` injected automatically by GitLab. Developer machines use a Deploy Token stored in `~/.m2/settings.xml` only.
+
 ### Rule 5 - No Sample Service in the Socle
 
 `foundation-sample-service` is **not** part of `foundation-platform`.
@@ -98,12 +128,12 @@ Consuming services are generated using `foundation-archetype` and live in separa
 
 The archetype must always:
 
-- include the 7 mandatory capabilities (core, api, security, logging, observability, mapping, test)
-- allow optional capabilities to be selected via `-Dcapabilities` at generation time
+- include the 6 mandatory capabilities (core, api, logging, observability, mapping, test)
+- allow optional capabilities to be selected via `-Dcapabilities` at generation time, including `security`
 - generate a hexagonal package structure (domain / application / infrastructure)
 - generate a minimal `application.yml` containing only the blocks for the selected capabilities
 
-### Rule 4 - No Deployment Artifacts
+### Rule 6 - No Deployment Artifacts
 
 Do not create:
 
@@ -116,7 +146,9 @@ Dockerfile belongs to the consuming microservice, not to the foundation runtime.
 
 > **Archetype exception**: `foundation-archetype` may include a `Dockerfile` template and a `.gitlab-ci.yml` template in its `archetype-resources/`. These files are generated inside the consuming service project (outside this repository), not inside the foundation-platform repository itself.
 
-### Rule 5 - No IDP-Specific Implementation
+> **Socle CI exception**: `foundation-platform` maintains its own `.gitlab-ci.yml` at the repository root. This pipeline builds, tests, and publishes the foundation artifacts to the GitLab Package Registry. It is the CI pipeline of the foundation itself, not a deployment artifact.
+
+### Rule 7 - No IDP-Specific Implementation
 
 Do not use Keycloak adapters.
 
@@ -124,7 +156,7 @@ Use Spring Security OAuth2 Resource Server.
 
 The platform must support any OIDC-compliant IDP through `issuer-uri` or `jwk-set-uri`.
 
-### Rule 6 - Generated Clients Belong to Consuming Services
+### Rule 8 - Generated Clients Belong to Consuming Services
 
 Do not place service-specific generated REST or SOAP clients inside `foundation-platform`.
 
@@ -136,6 +168,60 @@ The foundation provides:
 - Runtime support
 
 The consuming service owns the generated client modules.
+
+### Rule 9 - Maven Publication
+
+Publication to the Maven repository follows this workflow:
+
+**Local development** — install to `~/.m2/repository`:
+
+```bash
+mvn clean install
+```
+
+**CI/CD — GitLab Package Registry** (authenticated via `CI_JOB_TOKEN`):
+
+```bash
+mvn -B clean deploy -DskipTests=true --settings ci-settings.xml
+```
+
+`ci-settings.xml` is versioned in this repository without credentials. It references `${env.CI_JOB_TOKEN}`, which is injected automatically by GitLab CI in every job. No manual variable configuration is needed.
+
+For publication from a developer machine, configure a Deploy Token in `~/.m2/settings.xml` (never commit it).
+
+### Rule 10 - Versioning Governance
+
+Version changes follow a snapshot/release cycle:
+
+1. Decide the next version number (major.minor.patch) as a team.
+2. Bump version: `mvn versions:set -DnewVersion=X.Y.Z -DgenerateBackupPoms=false`
+3. Commit and tag: `git commit -m "release: prepare X.Y.Z"` then `git tag vX.Y.Z`
+4. Push the tag — the `publish-release` CI job triggers automatically.
+5. Return to snapshot: `mvn versions:set -DnewVersion=X.Y.Z+1-SNAPSHOT -DgenerateBackupPoms=false`
+
+Do not manually edit version numbers in POM files. Always use `mvn versions:set`.
+
+The CI pipeline provides two publish stages:
+
+- `publish-snapshot` — triggers on `main` or `develop` branches
+- `publish-release` — triggers only on protected tags matching `vX.Y.Z`
+
+### Rule 11 - MR Traceability
+
+Every merge request that changes a behavior or a platform principle must also update the relevant documentation.
+
+The following documents are source of truth and must stay consistent:
+
+- `AGENTS.md`
+- `PRD.md`
+- `README.md`
+- `docs/architecture.md`
+- `docs/guidelines/*`
+- `ai/instructions/*`
+- `ai/prompts/*`
+- `ROADMAP.md`
+
+A MR that modifies code without updating documentation when documentation is impacted must be rejected.
 
 ---
 
@@ -193,10 +279,22 @@ The agent must:
 
 ## Validation
 
-When possible, run:
+**Local validation:**
 
 ```bash
-mvn clean verify
+mvn clean install
+```
+
+**Module-level validation:**
+
+```bash
+mvn -pl {module} -am clean verify
+```
+
+**CI publication (requires GitLab CI context):**
+
+```bash
+mvn -B clean deploy -DskipTests=true --settings ci-settings.xml
 ```
 
 ---

@@ -1,11 +1,13 @@
 spring:
   application:
     name: ${artifactId}
+#if($capabilities.contains("security"))
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: https://your-idp/.well-known/openid-configuration
+#end
 #if($capabilities.contains("data"))
   datasource:
     url: jdbc:postgresql://localhost:5432/${artifactId}

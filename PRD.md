@@ -31,6 +31,10 @@ The platform should provide:
 
 - A Maven parent for build conventions
 - A BOM for dependency versions
+- Publishable Maven artifacts (single JAR or multiple JARs, depending on capability boundaries)
+- Distribution through a Maven repository manager (Nexus, Artifactory, or equivalent)
+- Concrete publication target: **GitLab Package Registry** via `distributionManagement` in `pom.xml`, `foundation-parent/pom.xml`, and `foundation-bom/pom.xml`
+- A CI pipeline for the foundation itself (build, test, publish-snapshot, publish-release)
 - Spring Boot starters for reusable capabilities
 - API error handling conventions
 - Security conventions
@@ -44,6 +48,7 @@ The platform should provide:
 - Testing helpers
 - Documentation and AI-agent instructions
 - A Maven archetype to generate ready-to-use hexagonal service projects
+- A versioning governance cycle (snapshot/release managed via `mvn versions:set`)
 
 ---
 
@@ -56,8 +61,10 @@ The platform should provide:
 - Force runtime dependencies on all consuming services
 - Provide service-specific business logic, entities, or APIs
 - Contain service-specific generated REST or SOAP clients
-- Include deployment artifacts (Docker Compose, Kubernetes, Helm, GitLab CI)
+- Include deployment artifacts for consuming services (Docker Compose, Kubernetes, Helm)
+- Include an IDP-specific CI pipeline (the foundation's own `.gitlab-ci.yml` is the exception for publishing artifacts)
 - Couple to a specific Identity Provider
+- Generate consuming services inside this repository
 - Embed a sample or demonstration service inside the socle — consuming services live outside this repository
 
 ---
@@ -67,10 +74,13 @@ The platform should provide:
 `foundation-platform` is successful when:
 
 - A new microservice can be bootstrapped in under a day using the foundation
+- Foundation artifacts are versioned and consumable from the GitLab Package Registry
 - Services are consistent in their API conventions, security model, and observability
 - Teams do not duplicate infrastructure code across services
 - The foundation does not require Spring Boot expertise beyond standard skills
 - Consuming services can override any default behavior without forking the foundation
+- Version governance is enforced: no direct POM edits, snapshot/release cycle followed
+- Every code change that modifies a behavior or principle is accompanied by a documentation update
 
 ---
 
@@ -79,6 +89,7 @@ The platform should provide:
 - Java 21 LTS baseline
 - Spring Boot 4.1.x
 - Maven multi-module structure
+- Artifacts must remain consumable as one or many JARs based on module boundaries
 - No vendor lock-in on Identity Provider
 - No deployment artifacts in this repository
 - Compatible with Gravitee API Gateway conventions
@@ -95,7 +106,7 @@ The platform should provide:
 | `foundation-core-starter` | Core auto-configuration baseline |
 | `foundation-api-starter` | API conventions, error handling |
 | `foundation-security-starter` | OAuth2 Resource Server |
-| `foundation-logging-starter` | Correlation ID, structured logs |
+| `foundation-logging-starter` | Structured logs (JSON format, MDC output) |
 | `foundation-observability-starter` | Actuator, Micrometer, OpenTelemetry |
 | `foundation-mapping-starter` | MapStruct configuration |
 | `foundation-data-starter` | JPA, Flyway, PostgreSQL defaults |
@@ -139,7 +150,7 @@ mvn archetype:generate \
 | `artifactId` | yes | — | Maven artifactId and directory name, e.g. `my-service` |
 | `version` | yes | `0.0.1-SNAPSHOT` | Maven version |
 | `serviceName` | yes | — | PascalCase Java class prefix, e.g. `MyService` (used for `MyServiceApplication.java`) |
-| `capabilities` | no | _(none)_ | Comma-separated optional capabilities: `data`, `nats`, `http-client`, `soap-client` |
+| `capabilities` | no | _(none)_ | Comma-separated optional capabilities: `security`, `data`, `nats`, `http-client`, `soap-client` |
 | `generateDockerfile` | no | `true` | Generate a minimal `Dockerfile` for the service |
 | `generateGitlabCi` | no | `true` | Generate a minimal `.gitlab-ci.yml` for the service |
 
@@ -151,7 +162,6 @@ Every generated service automatically includes:
 |---|---|
 | Core (correlation ID) | `foundation-core-starter` |
 | REST API conventions | `foundation-api-starter` |
-| Security (OAuth2/JWT) | `foundation-security-starter` |
 | Structured logging | `foundation-logging-starter` |
 | Observability (Actuator, Micrometer) | `foundation-observability-starter` |
 | MapStruct | `foundation-mapping-starter` |
@@ -161,6 +171,7 @@ Every generated service automatically includes:
 
 | Capability key | Starter added | Description |
 |---|---|---|
+| `security` | `foundation-security-starter` | OAuth2 Resource Server / JWT |
 | `data` | `foundation-data-starter` | JPA, Flyway, PostgreSQL |
 | `nats` | `foundation-nats-starter` | NATS messaging |
 | `http-client` | `foundation-http-client-starter` | WebClient / OpenAPI REST clients |

@@ -12,7 +12,9 @@ Service generated from `foundation-archetype`.
 
 - `core` — Correlation ID filter
 - `api` — REST API conventions, global error handling
+#if($capabilities.contains("security"))
 - `security` — OAuth2 Resource Server (JWT)
+#end
 - `logging` — Structured JSON logging
 - `observability` — Actuator, Micrometer, OpenTelemetry
 - `mapping` — MapStruct
@@ -75,5 +77,5 @@ mvn spring-boot:run
 ## Build
 
 ```bash
-mvn clean verify
+mvn clean install
 ```

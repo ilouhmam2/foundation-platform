@@ -1,9 +1,11 @@
 spring:
+#if($capabilities.contains("security"))
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:8080/test-issuer
+#end
 #if($capabilities.contains("data"))
   datasource:
     url: jdbc:tc:postgresql:16:///testdb

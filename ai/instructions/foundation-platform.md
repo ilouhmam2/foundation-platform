@@ -30,7 +30,7 @@ Do NOT read all files at once. Read only those relevant to the current module sc
 - Spring Boot 4.1.x
 - Maven
 - Spring Boot auto-configuration
-- Spring Security OAuth2 Resource Server
+- Spring Security OAuth2 Resource Server (when `security` capability is selected)
 - Flyway (data modules only)
 - Spring Data JPA (data modules only)
 - Lombok
@@ -69,9 +69,54 @@ A service uses a capability by declaring the related starter dependency.
 
 Do not use properties as the primary activation mechanism.
 
+### Artifact distribution and consumption
+
+The foundation must produce publishable Maven artifacts.
+
+Support both models when justified by module boundaries:
+
+- one consumable JAR
+- multiple consumable JARs
+
+Artifacts are versioned and published to the **GitLab Package Registry** of this project.
+
+`distributionManagement` must be declared in three POMs:
+
+- `pom.xml` (root aggregator)
+- `foundation-parent/pom.xml` (does not inherit from root)
+- `foundation-bom/pom.xml` (no Maven parent)
+
+All three use `id=gitlab-maven` and `${env.CI_API_V4_URL}/projects/${env.CI_PROJECT_ID}/packages/maven`.
+
+Credentials are never in versioned files. `ci-settings.xml` references `${env.CI_JOB_TOKEN}`, automatically injected by GitLab CI.
+
+Local development uses `mvn clean install`. CI uses `mvn -B clean deploy --settings ci-settings.xml`.
+
+Maven archetype resolution order: local `~/.m2/repository` first, then remote repositories from `~/.m2/settings.xml`.
+
 ### No deployment artifacts
 
-Do not create Docker Compose, Helm charts, Kubernetes manifests, or GitLab CI files.
+Do not create Docker Compose, Helm charts, or Kubernetes manifests.
+
+The foundation's own `.gitlab-ci.yml` at the repository root is the CI pipeline for the socle itself (build/test/publish). It is not a deployment artifact and is required for publication governance.
+
+### Versioning governance
+
+Always use `mvn versions:set` to change versions. Never edit POM files directly.
+
+Release cycle:
+1. `mvn versions:set -DnewVersion=X.Y.Z -DgenerateBackupPoms=false`
+2. `git tag vX.Y.Z` and push — `publish-release` job triggers automatically
+3. `mvn versions:set -DnewVersion=X.Y.Z+1-SNAPSHOT -DgenerateBackupPoms=false`
+
+CI pipeline jobs:
+- `publish-snapshot` — triggers on `main` or `develop` branches
+- `publish-release` — triggers only on protected tags matching `vX.Y.Z`
+
+### MR traceability
+
+Every MR that changes a behavior or principle must update the relevant source-of-truth documents:
+`AGENTS.md`, `PRD.md`, `README.md`, `docs/architecture.md`, `docs/guidelines/*`, `ai/instructions/*`, `ai/prompts/*`, `ROADMAP.md`.
 
 ### No IDP coupling
 
@@ -95,12 +140,12 @@ Consuming services are generated using `foundation-archetype` and live outside t
 
 Rules:
 
-- Every generated project must include the 7 mandatory capabilities (core, api, security, logging, observability, mapping, test).
-- Optional capabilities are selected via `-Dcapabilities` (comma-separated: `data`, `nats`, `http-client`, `soap-client`).
+- Every generated project must include the 6 mandatory capabilities (core, api, logging, observability, mapping, test).
+- Optional capabilities are selected via `-Dcapabilities` (comma-separated: `security`, `data`, `nats`, `http-client`, `soap-client`).
 - The generated package structure must follow ports-and-adapters (hexagonal): `domain/model`, `domain/port/in`, `domain/port/out`, `domain/service`, `application/usecase`, `infrastructure/adapter/in`, `infrastructure/adapter/out`, `infrastructure/config`.
 - The generated `application.yml` must contain only the configuration blocks for the selected capabilities.
 - The `pom.xml` must import `foundation-bom` and declare only the starters required by the selected capabilities.
-- Do not generate deployment artifacts inside the archetype template.
+- The archetype template may include a `Dockerfile` and a `.gitlab-ci.yml` in `archetype-resources/`. These files are generated inside the consuming service project, not inside `foundation-platform`. Do not add Kubernetes manifests or Helm charts to the archetype template.
 
 ---
 
@@ -112,6 +157,15 @@ Rules:
 4. Add documentation.
 5. Review the result for over-engineering.
 6. Prefer simple code over clever code.
+
+## Documentation synchronization rules
+
+When the task is to update roadmap, prompts, or AI instructions:
+
+- treat documentation changes as first-class implementation work
+- keep `AGENTS.md`, `ROADMAP.md`, `README.md`, `PRD.md`, `docs/architecture.md`, `docs/guidelines/*`, and `ai/*` consistent
+- use the repo agents in sequence when the change spans more than one document: `engineer` → `architect` → `reviewer` → `test-engineer` when examples or commands must be validated
+- keep the roadmap actionable: each new step must state which agent performs it and what validation proves it is done
 
 ---
 
@@ -132,7 +186,7 @@ Every starter must:
 
 ## foundation-common design rules
 
-`foundation-common` provides shared utilities with **zero Spring dependency**.
+`foundation-common` provides shared utilities. It must not contain Spring auto-configuration or Spring beans. It may reference Spring types as constants or parameter types only when unavoidable.
 
 ### What belongs here
 
@@ -151,7 +205,7 @@ Every starter must:
 `CorrelationIdUtils` is shared by multiple starters:
 
 - `foundation-api-starter` — extracts or generates correlation ID from HTTP headers
-- `foundation-logging-starter` — propagates correlation ID in log context
+- `foundation-logging-starter` — reads correlationId from MDC via logback pattern (no direct use of CorrelationIdUtils)
 - `foundation-nats-starter` — propagates correlation ID in NATS message metadata
 
 Any service that uses two or more of these starters benefits from a single shared utility.

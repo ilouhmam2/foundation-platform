@@ -116,6 +116,10 @@ class ExternalApiClientTest {
 
 ### FoundationPostgresContainer — PostgreSQL integration tests
 
+> **Design note**: `testcontainers:postgresql` is always present on the test classpath when this starter
+> is declared, even for services that do not use a database. This is an accepted coupling:
+> no separate module is provided. Services that do not need PostgreSQL can ignore this class.
+
 Use the singleton container in a shared `@TestConfiguration` to start PostgreSQL once per JVM:
 
 ```java

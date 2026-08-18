@@ -1,0 +1,66 @@
+# .gitlab-ci.yml — foundation-platform (socle uniquement)
+# Ce fichier est le pipeline CI/CD du socle lui-même.
+# Il est distinct du .gitlab-ci.yml généré dans les services consommateurs par foundation-archetype.
+#
+# Authentification GitLab Package Registry :
+#   CI_JOB_TOKEN      → injecté automatiquement par GitLab CI dans tous les jobs (aucune config requise)
+#   CI_API_V4_URL     → injecté automatiquement par GitLab CI (ex: https://gitlab.example.com/api/v4)
+#   CI_PROJECT_ID     → injecté automatiquement par GitLab CI (numéro du projet)
+#
+# Aucune variable manuelle à créer dans GitLab CI/CD → Settings → Variables pour le déploiement.
+# Pour un déploiement depuis une machine développeur, configurer ~/.m2/settings.xml avec
+# un Deploy Token (read_package_registry + write_package_registry) — jamais dans ce fichier.
+
+stages:
+  - build
+  - test
+  - publish
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  MAVEN_IMAGE: "maven:3.9-eclipse-temurin-21-alpine"
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .m2/repository/
+
+build:
+  stage: build
+  image: $MAVEN_IMAGE
+  script:
+    - mvn -B compile
+
+test:
+  stage: test
+  image: $MAVEN_IMAGE
+  script:
+    - mvn -B verify
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - "**/target/surefire-reports/*.xml"
+        - "**/target/failsafe-reports/*.xml"
+
+# Snapshot automatique sur les branches d'intégration
+# Se déclenche sur main et develop, jamais sur les tags
+publish-snapshot:
+  stage: publish
+  image: $MAVEN_IMAGE
+  script:
+    - mvn -B clean deploy -DskipTests=true --settings ci-settings.xml
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "develop"'
+      when: on_success
+
+# Release uniquement sur tag vX.Y.Z protégé
+# Le tag doit être créé manuellement après validation de l'équipe (mvn versions:set)
+publish-release:
+  stage: publish
+  image: $MAVEN_IMAGE
+  script:
+    - mvn -B clean deploy -DskipTests=true --settings ci-settings.xml
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+      when: on_success

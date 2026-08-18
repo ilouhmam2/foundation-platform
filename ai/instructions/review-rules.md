@@ -71,7 +71,7 @@ Check:
 
 Reject a change if it:
 
-- adds deployment files
+- adds deployment files for consuming services (Docker Compose, Helm, Kubernetes)
 - adds business-specific code
 - adds optional runtime dependencies to parent
 - uses Keycloak adapters
@@ -79,6 +79,21 @@ Reject a change if it:
 - relies on `enabled=true` as primary feature activation
 - creates generated clients in foundation repository
 - hides Spring Boot behind a custom programming model
+- hardcodes credentials in versioned files
+- edits version numbers directly in POM files (must use `mvn versions:set`)
+- modifies a behavior or principle without updating the relevant source-of-truth documents
+
+## 9. Publication and versioning checks
+
+Check:
+
+- `distributionManagement` declared in all three required POMs (`pom.xml`, `foundation-parent/pom.xml`, `foundation-bom/pom.xml`)
+- Repository id is `gitlab-maven` in all three POMs and in `ci-settings.xml`
+- URLs reference `${env.CI_API_V4_URL}/projects/${env.CI_PROJECT_ID}/packages/maven`
+- No credentials in versioned files (no username/password in POM or committed settings files)
+- `ci-settings.xml` references `${env.CI_JOB_TOKEN}` only
+- Version bumps use `mvn versions:set` and not direct POM edits
+- CI pipeline has separate `publish-snapshot` (branch trigger) and `publish-release` (tag trigger)
 
 ## 9. Review output format
 

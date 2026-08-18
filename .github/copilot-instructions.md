@@ -27,4 +27,7 @@ Important rules:
 - Do not add Helm charts.
 - Keep composition dependency-driven.
 - Do not use properties as the primary feature activation mechanism.
+- Keep archetype generation outside this repository (generated services are external consumers).
+- Treat security as an optional archetype capability, not a mandatory one.
+- Keep artifacts publishable to Maven repositories (Nexus/Artifactory/equivalent).
 - Keep the foundation close to Spring Boot.

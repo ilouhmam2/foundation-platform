@@ -33,6 +33,8 @@ The architecture follows:
 - low coupling
 - high testability
 
+Artifacts are packaged as publishable Maven deliverables and consumed through a repository manager (Nexus, Artifactory, or equivalent), as one JAR or multiple JARs depending on capability boundaries.
+
 ---
 
 ## 3. Core principles
@@ -143,7 +145,7 @@ deployment platform
     Docker
     Helm
     Kubernetes
-    GitLab CI
+    GitLab CI (consuming service pipelines — see §16 for the socle CI exception)
 ```
 
 ---
@@ -458,18 +460,22 @@ The repository must not contain:
 - Docker Compose
 - Kubernetes manifests
 - Helm charts
-- GitLab CI pipelines
+- Deployment-oriented GitLab CI pipelines (pipelines that build or deploy consuming services)
 - ArgoCD manifests
 
 Deployment concerns belong to platform engineering teams.
 
 > **Archetype exception**: `foundation-archetype` may generate a minimal `Dockerfile` and `.gitlab-ci.yml` inside the target consuming service project. These files belong to the generated service, not to the foundation-platform repository.
 
+> **Socle CI exception**: `foundation-platform` maintains its own `.gitlab-ci.yml` at the repository root. This pipeline builds, tests, and publishes the foundation artifacts to the GitLab Package Registry. It is the CI pipeline of the foundation itself, not a deployment artifact.
+
 ---
 
 ## 17. Archetype architecture
 
 `foundation-archetype` is a Maven Archetype that generates a ready-to-use microservice project.
+
+Generated services always include the mandatory capabilities and only include optional capabilities, including security, when explicitly requested at generation time.
 
 Generated services live outside this repository.
 
@@ -481,7 +487,7 @@ Generated services live outside this repository.
 | `artifactId` | yes | — | Maven artifactId and project directory name (e.g. `my-service`) |
 | `version` | yes | `0.0.1-SNAPSHOT` | Maven version |
 | `serviceName` | yes | — | PascalCase Java class name prefix (e.g. `MyService` → `MyServiceApplication.java`) |
-| `capabilities` | no | _(none)_ | Comma-separated optional capabilities: `data`, `nats`, `http-client`, `soap-client` |
+| `capabilities` | no | _(none)_ | Comma-separated optional capabilities: `security`, `data`, `nats`, `http-client`, `soap-client` |
 | `generateDockerfile` | no | `true` | Generate a minimal `Dockerfile` for the service |
 | `generateGitlabCi` | no | `true` | Generate a minimal `.gitlab-ci.yml` for the service |
 
@@ -493,7 +499,6 @@ Every generated project automatically includes:
 |---|---|
 | `foundation-core-starter` | Correlation ID propagation |
 | `foundation-api-starter` | REST API conventions, error handling |
-| `foundation-security-starter` | OAuth2 Resource Server JWT |
 | `foundation-logging-starter` | Structured JSON logging |
 | `foundation-observability-starter` | Actuator, Micrometer, OpenTelemetry |
 | `foundation-mapping-starter` | MapStruct configuration |
@@ -505,6 +510,7 @@ Teams select optional capabilities using `-Dcapabilities` at generation time:
 
 | Key | Starter | Adds |
 |---|---|---|
+| `security` | `foundation-security-starter` | OAuth2 Resource Server JWT |
 | `data` | `foundation-data-starter` | JPA, Flyway, PostgreSQL |
 | `nats` | `foundation-nats-starter` | NATS messaging |
 | `http-client` | `foundation-http-client-starter` | WebClient, OpenAPI REST clients |
@@ -599,7 +605,131 @@ The foundation exists only to provide reusable technical capabilities and the to
 
 ---
 
-## 19. Related documents
+## 19. Maven publication and distribution
+
+Foundation artifacts are published to the **GitLab Package Registry** of this project.
+
+### distributionManagement
+
+`distributionManagement` must be declared in three POMs because inheritance does not propagate across parent boundaries:
+
+| POM | Reason |
+|---|---|
+| `pom.xml` (root aggregator) | Aggregator publish target |
+| `foundation-parent/pom.xml` | Does not inherit from the root aggregator |
+| `foundation-bom/pom.xml` | Has no Maven parent |
+
+All three use the same repository id and URL:
+
+```xml
+<distributionManagement>
+  <repository>
+    <id>gitlab-maven</id>
+    <url>${env.CI_API_V4_URL}/projects/${env.CI_PROJECT_ID}/packages/maven</url>
+  </repository>
+  <snapshotRepository>
+    <id>gitlab-maven</id>
+    <url>${env.CI_API_V4_URL}/projects/${env.CI_PROJECT_ID}/packages/maven</url>
+  </snapshotRepository>
+</distributionManagement>
+```
+
+All starter modules inherit `distributionManagement` from `foundation-parent`.
+
+### CI authentication
+
+`ci-settings.xml` is versioned in this repository without credentials:
+
+```xml
+<settings>
+  <servers>
+    <server>
+      <id>gitlab-maven</id>
+      <username>gitlab-ci-token</username>
+      <password>${env.CI_JOB_TOKEN}</password>
+    </server>
+  </servers>
+</settings>
+```
+
+`CI_JOB_TOKEN`, `CI_API_V4_URL`, and `CI_PROJECT_ID` are automatically injected by GitLab CI into every job. No manual variable configuration is required.
+
+### Publication workflow
+
+**Local development** — installs to `~/.m2/repository`:
+
+```bash
+mvn clean install
+```
+
+**CI/CD** — deploys to the GitLab Package Registry:
+
+```bash
+mvn -B clean deploy -DskipTests=true --settings ci-settings.xml
+```
+
+**Developer machine to Package Registry** (optional) — requires a Deploy Token in `~/.m2/settings.xml`:
+
+```bash
+export CI_API_V4_URL=https://gitlab.example.com/api/v4
+export CI_PROJECT_ID=<ID>
+mvn clean deploy
+```
+
+Credentials must never be stored in versioned files.
+
+### Maven resolution order
+
+When Maven generates a service from the archetype, resolution follows this order:
+
+1. Local `~/.m2/repository` cache
+2. Remote repositories declared in `~/.m2/settings.xml` (or the effective Maven settings)
+
+---
+
+## 20. Versioning governance
+
+The foundation uses a deliberate snapshot/release cycle.
+
+### Version bump cycle
+
+1. Team agrees on the next version (major.minor.patch)
+2. Bump: `mvn versions:set -DnewVersion=X.Y.Z -DgenerateBackupPoms=false`
+3. Commit and tag: `git commit -m "release: prepare X.Y.Z"` then `git tag vX.Y.Z`
+4. Push the tag — `publish-release` CI job triggers automatically
+5. Return to SNAPSHOT: `mvn versions:set -DnewVersion=X.Y.Z+1-SNAPSHOT -DgenerateBackupPoms=false`
+
+Version numbers are always managed via `mvn versions:set`. Direct POM edits are forbidden.
+
+### CI pipeline stages
+
+| Stage | Job | Trigger |
+|---|---|---|
+| build | `build` | all commits |
+| test | `test` | all commits |
+| publish | `publish-snapshot` | merge to `main` or `develop` |
+| publish | `publish-release` | tag matching `vX.Y.Z` (protected) |
+
+### Traceability rule
+
+Every MR that changes a behavior or a platform principle must update the relevant documentation.
+
+Source of truth documents:
+
+- `AGENTS.md`
+- `PRD.md`
+- `README.md`
+- `docs/architecture.md`
+- `docs/guidelines/*`
+- `ai/instructions/*`
+- `ai/prompts/*`
+- `ROADMAP.md`
+
+A MR without corresponding documentation update must be rejected when the change impacts one of these documents.
+
+---
+
+## 21. Related documents
 
 Architecture decisions are documented through ADRs.
 
