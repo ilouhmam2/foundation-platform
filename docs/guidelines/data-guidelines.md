@@ -29,6 +29,10 @@ The PostgreSQL JDBC driver must be declared explicitly by consuming services.
 
 All schema changes must be managed by Flyway.
 
+With Spring Boot 4.x, Flyway auto-configuration is provided by
+`org.springframework.boot:spring-boot-flyway` (not by
+`spring-boot-autoconfigure` directly).
+
 Rules:
 - Migrations belong to consuming services, not to `foundation-platform`
 - Migration files live in `src/main/resources/db/migration`

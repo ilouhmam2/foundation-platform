@@ -15,12 +15,16 @@ class DataAutoConfigurationTest {
 
     @Test
     void shouldLoadContextWithoutError() {
-        contextRunner.run(ctx -> assertThat(ctx).hasNotFailed());
+        contextRunner
+                .withBean("jpaAuditingHandler", Object.class, Object::new)
+                .run(ctx -> assertThat(ctx).hasNotFailed());
     }
 
     @Test
     void shouldRegisterDataProperties() {
-        contextRunner.run(ctx -> assertThat(ctx).hasSingleBean(DataProperties.class));
+        contextRunner
+                .withBean("jpaAuditingHandler", Object.class, Object::new)
+                .run(ctx -> assertThat(ctx).hasSingleBean(DataProperties.class));
     }
 
     @Test

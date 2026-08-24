@@ -47,7 +47,9 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.error").value("Bad Request"))
                 .andExpect(jsonPath("$.message").isNotEmpty())
-                .andExpect(jsonPath("$.path").value("/test/validate"));
+                .andExpect(jsonPath("$.path").value("/test/validate"))
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors").isNotEmpty());
     }
 
     @Test

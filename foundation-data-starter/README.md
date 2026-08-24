@@ -72,7 +72,9 @@ V1__create_orders.sql
 V2__add_status_to_orders.sql
 ```
 
-Flyway is enabled automatically when `flyway-core` is on the classpath.
+With Spring Boot 4.x, Flyway is auto-configured via
+`org.springframework.boot:spring-boot-flyway`.
+This starter brings that module so Flyway can run automatically.
 
 ## Configuration reference
 

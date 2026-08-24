@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -30,16 +31,19 @@ public class ValidationExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleConstraintViolation(
             ConstraintViolationException ex, HttpServletRequest request) {
         var violations = ex.getConstraintViolations();
-        String message = (violations != null && !violations.isEmpty())
+        List<String> errors = (violations != null && !violations.isEmpty())
                 ? violations.stream()
                         .map(cv -> cv.getPropertyPath() + ": " + cv.getMessage())
-                        .collect(Collectors.joining(", "))
+                        .collect(Collectors.toList())
+                : null;
+        String message = (errors != null && !errors.isEmpty())
+                ? String.join(", ", errors)
                 : ex.getMessage();
-        return buildResponse(HttpStatus.BAD_REQUEST, message, request);
+        return buildResponse(HttpStatus.BAD_REQUEST, message, errors, request);
     }
 
     private ResponseEntity<ApiErrorResponse> buildResponse(
-            HttpStatus status, String message, HttpServletRequest request) {
+            HttpStatus status, String message, List<String> errors, HttpServletRequest request) {
         String fromMdc = MDC.get("correlationId");
         String correlationId = (fromMdc != null && !fromMdc.isBlank())
                 ? fromMdc
@@ -50,6 +54,7 @@ public class ValidationExceptionHandler {
                 status.getReasonPhrase(),
                 message,
                 request.getRequestURI(),
-                correlationId));
+                correlationId,
+                errors));
     }
 }

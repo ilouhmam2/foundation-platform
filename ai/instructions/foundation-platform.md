@@ -32,6 +32,7 @@ Do NOT read all files at once. Read only those relevant to the current module sc
 - Spring Boot auto-configuration
 - Spring Security OAuth2 Resource Server (when `security` capability is selected)
 - Flyway (data modules only)
+- For Spring Boot 4.x: data modules requiring Flyway auto-configuration must include `org.springframework.boot:spring-boot-flyway`
 - Spring Data JPA (data modules only)
 - Lombok
 - MapStruct

@@ -1,16 +1,19 @@
 package fr.francetv.foundation.nats.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.francetv.foundation.nats.health.NatsHealthIndicator;
 import fr.francetv.foundation.nats.properties.NatsProperties;
 import fr.francetv.foundation.nats.publisher.NatsMessagePublisher;
 import io.nats.client.Connection;
 import io.nats.client.Nats;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 
@@ -70,5 +73,16 @@ public class NatsAutoConfiguration {
             ObjectMapper objectMapper,
             @Value("${spring.application.name:}") String applicationName) {
         return new NatsMessagePublisher(connection, objectMapper, applicationName);
+    }
+
+    @Configuration
+    @ConditionalOnClass(HealthIndicator.class)
+    static class NatsHealthConfiguration {
+
+        @Bean
+        @ConditionalOnMissingBean
+        NatsHealthIndicator natsHealthIndicator(Connection connection) {
+            return new NatsHealthIndicator(connection);
+        }
     }
 }

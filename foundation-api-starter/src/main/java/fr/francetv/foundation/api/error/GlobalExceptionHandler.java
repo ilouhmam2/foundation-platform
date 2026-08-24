@@ -20,6 +20,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -45,12 +46,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
-        String message = ex.getBindingResult().getAllErrors().stream()
+        List<String> errors = ex.getBindingResult().getAllErrors().stream()
                 .map(error -> error instanceof FieldError fe
                         ? fe.getField() + ": " + fe.getDefaultMessage()
                         : error.getDefaultMessage())
-                .collect(Collectors.joining(", "));
-        return buildResponse(HttpStatus.BAD_REQUEST, message, request);
+                .collect(Collectors.toList());
+        return buildResponse(HttpStatus.BAD_REQUEST, String.join(", ", errors), errors, request);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -103,14 +104,20 @@ public class GlobalExceptionHandler {
     }
 
     protected ResponseEntity<ApiErrorResponse> buildResponse(
-            HttpStatus status, String message, HttpServletRequest request) {
+            HttpStatus status, String message, List<String> errors, HttpServletRequest request) {
         return ResponseEntity.status(status).body(new ApiErrorResponse(
                 DateTimeFormatter.ISO_INSTANT.format(Instant.now()),
                 status.value(),
                 status.getReasonPhrase(),
                 message,
                 request.getRequestURI(),
-                resolveCorrelationId(request)));
+                resolveCorrelationId(request),
+                errors));
+    }
+
+    protected ResponseEntity<ApiErrorResponse> buildResponse(
+            HttpStatus status, String message, HttpServletRequest request) {
+        return buildResponse(status, message, null, request);
     }
 
     protected String resolveCorrelationId(HttpServletRequest request) {
